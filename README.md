@@ -25,7 +25,6 @@ Organization
 ------------
 ```
 ├── api
-│   └── mongolia.yml    <- OpenAPI spec file
 ├── pkg                 <- Go package source
 └── cmd                 <- runnable server implementing the OpenAPI 3 spec
 ```

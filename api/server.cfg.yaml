@@ -1,5 +1,0 @@
-package: api
-generate:
-  echo-server: true
-  embedded-spec: true
-output: mongolia-server.gen.go
