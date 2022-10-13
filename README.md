@@ -19,7 +19,8 @@ From top level of repository:
 
 Environment
 -----------
-* `AMBER_MONGO_URI`: MongoDB [connection URI](https://www.mongodb.com/docs/manual/reference/connection-string/) for the database instance to use
+* `AMBER_MONGO_URI`: MongoDB [connection URI](https://www.mongodb.com/docs/manual/reference/connection-string/) for the mongo instance to use.
+* `AMBER_DB_NAME`: Name of mongo database to connect to.
 
 Organization
 ------------
@@ -31,3 +32,8 @@ Organization
 
 Roadmap
 -------
+
+
+Coding rules
+------------
+* Don't overuse positional arguments. If a function signature is getting too complicated use a configurator struct.
