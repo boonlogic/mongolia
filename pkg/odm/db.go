@@ -17,3 +17,7 @@ func Connect() error {
 	db = client.Database(config.DBName)
 	return nil
 }
+
+func Drop() error {
+	return db.Drop(ctx())
+}

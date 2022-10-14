@@ -1,46 +1,37 @@
 package odm
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
-	"fmt"
-	"strings"
-
 	"github.com/santhosh-tekuri/jsonschema/v5"
-	"gopkg.in/yaml.v2"
 )
 
-var yamlText = `
-productId: 1
-productName: A green door
-price: 12.50
-tags:
-- home
-- green
-`
-
-
-func Validate() {
-	var m interface{}
-	err := yaml.Unmarshal([]byte(yamlText), &m)
-	if err != nil {
-		panic(err)
+func ValidateJSONSchema(value []byte, spec []byte) (bool, error) {
+	var obj interface{}
+	if err := json.Unmarshal(value, &obj); err != nil {
+		return false, err
 	}
-	m, err = toStringKeys(m)
+
+	obj, err := toStringKeys(obj)
 	if err != nil {
-		panic(err)
+		return false, err
 	}
+
 	compiler := jsonschema.NewCompiler()
-	if err := compiler.AddResource("schema.json", strings.NewReader(schemaText)); err != nil {
-		panic(err)
+	if err := compiler.AddResource("schema.json", bytes.NewReader(spec)); err != nil {
+		return false, err
 	}
+
 	schema, err := compiler.Compile("schema.json")
 	if err != nil {
-		panic(err)
+		return false, err
 	}
-	if err := schema.Validate(m); err != nil {
-		panic(err)
+
+	if err := schema.Validate(value); err != nil {
+		return false, err
 	}
-	fmt.Println("validation successfull")
+	return true, nil
 }
 
 func toStringKeys(val interface{}) (interface{}, error) {
