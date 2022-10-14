@@ -53,7 +53,32 @@ func main() {
 	}
 	fmt.Printf("created document:\n%+v\n", doc)
 
+	docs, err := roles.FindMany(nil)
+	if err != nil {
+		log.Fatalf("failed to FindMany: %s\n", err)
+	}
+	fmt.Printf("found documents:\n%+v\n", docs)
 
+	doc, err = roles.FindOne(nil)
+	if err != nil {
+		log.Fatalf("failed to FindOne: %s\n", err)
+	}
+	fmt.Printf("found document:\n%+v\n", doc)
+
+	obj1 := *r
+	obj1.ID = "6349a84fe97051c7b555e173"
+	obj2 := *r
+	obj2.ID = "6349a84fe97051c7b555e174"
+	obj3 := *r
+	obj3.ID = "6349a84fe97051c7b555e175"
+	//obj3.Name = "12347890!@#$!#@$"
+	objs := []any{obj1, obj2, obj3}
+
+	docs, err = roles.CreateMany(objs)
+	if err != nil {
+		log.Fatalf("failed to CreateMany: %s\n", err)
+	}
+	fmt.Printf("created documents:\n%+v\n", docs)
 
 	//router := gin.Default()
 	//router.GET("/hello", controllers.SayHello)
