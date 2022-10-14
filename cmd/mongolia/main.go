@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-	"gitlab.boonlogic.com/development/expert/mongolia/pkg/controllers"
+	"fmt"
 	"gitlab.boonlogic.com/development/expert/mongolia/pkg/odm"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"io/ioutil"
 	"log"
 )
 
@@ -16,90 +17,75 @@ func main() {
 		log.Fatalf("failed to connect: %s\n", err)
 	}
 
-	//perm := &odm.Schema{
-	//	Name: "permission",
-	//	Attributes: []odm.Attribute{
-	//		{
-	//			Name:     "name",
-	//			Unique:   true,
-	//			Required: true,
-	//			Type:     types.STRING,
-	//		},
-	//		{
-	//			Name:     "token",
-	//			Unique:   true,
-	//			Required: true,
-	//			Type:     types.STRING,
-	//			Pattern:  "^(\\+|\\-):([a-zA-Z0-9]|\\*):([a-zA-Z0-9]|\\*)$",
-	//		},
-	//		{
-	//			Name:     "access",
-	//			Required: true,
-	//			Type:     types.STRING,
-	//			Enum: odm.Enum{
-	//				Values: []Value{}{
-	//					"allow",
-	//					"deny",
-	//				},
-	//			},
-	//		},
-	//		{
-	//			Name:     "resource",
-	//			Type:     types.STRING,
-	//			Required: true,
-	//			Pattern:  "^([a-zA-Z0-9-_]|\\*)$",
-	//		},
-	//		{
-	//			Name:     "action",
-	//			Type:     types.STRING,
-	//			Required: true,
-	//			Pattern:  "^([a-zA-Z0-9-_]|\\*)$",
-	//		},
-	//	},
+	// add the rest of the schemas: perms and roles (finish defining the spec)
+	path := "/Users/lukearend/builder/packages/mongolia/mongolia/schemas/role.yaml"
+	spec, err := ioutil.ReadFile(path)
+	if err != nil {
+		log.Fatalf("failed to load license schema: %s\n", err)
+	}
+
+	preValidate := func(any) *odm.Model {
+		fmt.Println("prevalidating...")
+		return nil
+	}
+	hooks := &odm.Hooks{
+		PreValidate: preValidate,
+	}
+
+	odm.RegisterModel("roles", spec, hooks)
+
+	//role := &Role{
+	//	Name:        "brads-first-role",
+	//	Permissions: []primitive.ObjectID{},
+	//}
+	//roles := odm.GetModel("roles")
+	//doc, err := roles.CreateOne(role)
+	//if err != nil {
+	//	log.Fatalf("failed to CreateOne: %s\n", err)
 	//}
 	//
-	//role := &odm.Schema{
-	//	Name: "role",
-	//	Attributes: []odm.Attribute{
-	//		{
-	//			Name:     "name",
-	//			Type:     types.STRING,
-	//			Unique:   true,
-	//			Required: true,
-	//			Pattern:  "^[a-zA-Z0-9-_]*$",
-	//		},
-	//		{
-	//			Name: "permissions",
-	//			Type: types.ARRAY,
-	//			Required: true,
-	//			Item: odm.ArrayItem{
-	//				Type: types.POINTER,
-	//				Collection: "permissions",
-	//			},
-	//		},
-	//		{
-	//			Name:      "user emails",
-	//			Type:      types.ARRAY,
-	//			Item: odm.ArrayItem{
-	//				Type: types.STRING,
-	//				Format: "email",
-	//			},
-	//		},
-	//	},
-	//}
+	//fmt.Printf("created document:\n%+v\n", doc)
 
-	//if err := odm.AddSchema(perm); err != nil {
-	//	panic(any(err))
-	//}
-	//if err := odm.AddSchema(role); err != nil {
-	//	panic(any(err))
-	//}
+	schema := `
+{
+  "$id": "https://gitlab.com/boonlogic/development/expert-api/api/amberv2/schemas/role.json",
+  "title": "Role",
+  "type": "object",
+  "required": [ "productId", "productName", "price" ]
+  "properties": {
+    "_id": {
+      "type": "objectId"
+    },
+    "name": {
+      "type": "string",
+      "pattern"": "^[a-zA-Z0-9-_]*$"
+    },
+    "price": {
+      "description": "The price of the product",
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "tags": {
+      "description": "Tags for the product",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  },
+}
+`
 
-	// add the rest of the schemas: perms and roles (finish defining the spec)
-	// draw solid dotted line, begin using the spec
-	// implement odm.Query, odm.Find etc and try them
+	role := map[string]interface{}{
+		"name": "brads-role",
+		"permissions": []primitive.ObjectID{},
+	}
 
-	router := gin.Default()
-	router.GET("/hello", controllers.SayHello)
-	router.Run("localhost:8080")
+	odm.Validate()
+
+	//router := gin.Default()
+	//router.GET("/hello", controllers.SayHello)
+	//router.Run("localhost:8080")
 }

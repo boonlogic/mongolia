@@ -25,6 +25,7 @@ func Configure() error {
 	if dbname == "" {
 		return errors.New("missing environment variable: AMBER_DB_NAME")
 	}
+	config = new(Config)
 	config.URI = uri
 	config.DBName = dbname
 	return nil

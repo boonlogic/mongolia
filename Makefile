@@ -9,6 +9,10 @@ help:
 TOP?=$(shell cd .. && git rev-parse --show-toplevel)
 -include $(TOP)/mk/base.mk
 
+# Load local environment
+-include .env
+export
+
 run:
 	go run ./cmd/mongolia
 
