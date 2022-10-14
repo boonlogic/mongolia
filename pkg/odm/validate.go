@@ -4,34 +4,46 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/santhosh-tekuri/jsonschema/v5"
 )
 
-func ValidateJSONSchema(value []byte, spec []byte) (bool, error) {
-	var obj interface{}
-	if err := json.Unmarshal(value, &obj); err != nil {
-		return false, err
-	}
-
-	obj, err := toStringKeys(obj)
-	if err != nil {
-		return false, err
-	}
+func ValidateSpec(name string, spec []byte) (func(any) error, error) {
+	url := encodeURL(name)
 
 	compiler := jsonschema.NewCompiler()
-	if err := compiler.AddResource("schema.json", bytes.NewReader(spec)); err != nil {
-		return false, err
+	if err := compiler.AddResource(url, bytes.NewReader(spec)); err != nil {
+		return nil, err
 	}
 
-	schema, err := compiler.Compile("schema.json")
+	schema, err := compiler.Compile(url)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	if err := schema.Validate(value); err != nil {
-		return false, err
+	vfunc := func(obj any) error {
+		return validate(obj, schema.Validate)
 	}
-	return true, nil
+	return vfunc, nil
+}
+
+func validate(in any, vfunc func(any) error) error {
+	buf, err := json.Marshal(in)
+	if err != nil {
+		return err
+	}
+	var obj interface{}
+	if err := json.Unmarshal(buf, &obj); err != nil {
+		return err
+	}
+	obj, err = toStringKeys(obj)
+	if err != nil {
+		return err
+	}
+	if err := vfunc(obj); err != nil {
+		return err
+	}
+	return nil
 }
 
 func toStringKeys(val interface{}) (interface{}, error) {
@@ -42,7 +54,7 @@ func toStringKeys(val interface{}) (interface{}, error) {
 		for k, v := range val {
 			k, ok := k.(string)
 			if !ok {
-				return nil, errors.New("found non-string key")
+				return nil, errors.New(fmt.Sprintf("found non-string key: %+v", k))
 			}
 			m[k], err = toStringKeys(v)
 			if err != nil {

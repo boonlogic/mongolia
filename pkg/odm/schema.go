@@ -6,9 +6,11 @@ import (
 )
 
 type Schema struct {
-	Name string
+	Name       string
 	Definition []byte
-	Hooks *Hooks
+	Validator  func(any) error
+	Hooks      *Hooks
+	url        string
 }
 
 func (s *Schema) PreValidate(any) *Model {
@@ -51,8 +53,10 @@ func (s *Schema) PostRemove(any) *Model {
 	return nil
 }
 
-func (s *Schema) CreateOne(obj any) (doc *Document, err error) {
-	// todo: JSON schema validation here
+func (s *Schema) CreateOne(obj any) (*Document, error) {
+	if err := s.Validator(obj); err != nil {
+		return nil, err
+	}
 
 	insres, err := db.Collection(s.Name).InsertOne(ctx(), obj)
 	if err != nil {
@@ -95,3 +99,4 @@ func (s *Schema) RemoveOne(any) (*Document, error) {
 func (s *Schema) RemoveMany(any) ([]Document, error) {
 	return nil, nil
 }
+

@@ -1,10 +1,8 @@
 package odm
 
 import (
-	"context"
-	"go.mongodb.org/mongo-driver/bson"
+	"net/url"
 )
-
 
 var modelRegistry = ModelRegistry{}
 
@@ -26,8 +24,6 @@ type Model interface {
 	PreRemove(any) *Model
 	PostRemove(any) *Model
 
-	////////////////////////////////
-
 	CreateOne(obj any) (doc *Document, err error)
 	CreateMany(any) ([]Document, error)
 	FindOne(any) (*Document, error)
@@ -38,35 +34,21 @@ type Model interface {
 	RemoveMany(any) ([]Document, error)
 }
 
-func RegisterModel(name string, spec []byte, hooks *Hooks) {
-	// todo: validate that it is good OpenAPI
-	//loader := &openapi3.Loader{Context: ctx(), IsExternalRefsAllowed: true}
-	//doc, _ := loader.LoadFromFile(".../My-OpenAPIv3-API.yml")
-	//_ := doc.Validate(ctx())
-
+func RegisterModel(name string, spec []byte, hooks *Hooks) error {
+	vfunc, err := ValidateSpec(name, spec)
+	if err != nil {
+		return err
+	}
 	s := Schema{
-		Name: name,
+		Name:       name,
 		Definition: spec,
+		Validator:  vfunc,
 		Hooks:      hooks,
 	}
 	modelRegistry[name] = s
+	return nil
 }
 
-type Hooks struct {
-	PreValidate  func(any) *Model
-	PostValidate func(any) *Model
-	PreSave      func(any) *Model
-	PostSave     func(any) *Model
-	PreCreate    func(any) *Model
-	PostCreate   func(any) *Model
-	PreUpdate    func(any) *Model
-	PostUpdate   func(any) *Model
-	PreRemove    func(any) *Model
-	PostRemove   func(any) *Model
-}
-
-type Document bson.D
-
-func ctx() context.Context {
-	return context.Background()
+func encodeURL(s string) string {
+	return url.QueryEscape(s)
 }
