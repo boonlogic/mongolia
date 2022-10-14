@@ -18,7 +18,7 @@ func main() {
 	}
 
 	// add the rest of the schemas: perms and roles (finish defining the spec)
-	path := "/Users/lukearend/builder/packages/mongolia/mongolia/schemas/role.yaml"
+	path := "/Users/lukearend/builder/packages/mongolia/mongolia/schemas/role.json"
 	spec, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Fatalf("failed to load license schema: %s\n", err)

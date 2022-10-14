@@ -1,0 +1,36 @@
+{
+  "$id": "https://gitlab.com/boonlogic/development/expert-api/api/amberv2/schemas/role.json",
+  "type": "object",
+  "required": [
+    "_id",
+    "name",
+    "tenant",
+    "permissions"
+  ],
+  "unique": [
+    "_id",
+    "name"
+  ],
+  "properties": {
+    "_id": {
+      "type": "objectId"
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9-_]*$",
+      "maxLength": 64
+    },
+    "tenant": {
+      "type": "objectId",
+      "$ref": "/schemas/tenant.json"
+    },
+    "permissions": {
+      "type": "array",
+      "item": {
+        "type": "objectId",
+        "$ref": "/schemas/permission.json"
+      }
+    }
+  },
+  "additionalProperties": false
+}
