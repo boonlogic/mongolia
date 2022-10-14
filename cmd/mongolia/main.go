@@ -29,6 +29,7 @@ func main() {
 	hooks := &odm.Hooks{
 		PreValidate: preValidate,
 	}
+
 	if err := odm.RegisterModel("roles", schemaText, hooks); err != nil {
 		log.Fatalf("failed to register model: %s\n", err)
 	}

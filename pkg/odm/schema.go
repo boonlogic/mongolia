@@ -11,46 +11,45 @@ type Schema struct {
 	Definition []byte
 	Validator  func(any) error
 	Hooks      *Hooks
-	url        string
 }
 
-func (s *Schema) PreValidate(any) *Model {
+func (s *Schema) preValidate(any) *Model {
 	return nil
 }
 
-func (s *Schema) PostValidate(any) *Model {
+func (s *Schema) postValidate(any) *Model {
 	return nil
 }
 
-func (s *Schema) PreSave(any) *Model {
+func (s *Schema) preSave(any) *Model {
 	return nil
 }
 
-func (s *Schema) PostSave(any) *Model {
+func (s *Schema) postSave(any) *Model {
 	return nil
 }
 
-func (s *Schema) PreCreate(any) *Model {
+func (s *Schema) preCreate(any) *Model {
 	return nil
 }
 
-func (s *Schema) PostCreate(any) *Model {
+func (s *Schema) postCreate(any) *Model {
 	return nil
 }
 
-func (s *Schema) PreUpdate(any) *Model {
+func (s *Schema) preUpdate(any) *Model {
 	return nil
 }
 
-func (s *Schema) PostUpdate(any) *Model {
+func (s *Schema) postUpdate(any) *Model {
 	return nil
 }
 
-func (s *Schema) PreRemove(any) *Model {
+func (s *Schema) preRemove(any) *Model {
 	return nil
 }
 
-func (s *Schema) PostRemove(any) *Model {
+func (s *Schema) postRemove(any) *Model {
 	return nil
 }
 

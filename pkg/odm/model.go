@@ -4,25 +4,25 @@ import (
 	"net/url"
 )
 
-var modelRegistry = ModelRegistry{}
-
 type ModelRegistry map[string]Schema
+
+var modelRegistry = ModelRegistry{}
 
 func GetModel(name string) Schema {
 	return modelRegistry[name]
 }
 
 type Model interface {
-	PreValidate(any) *Model
-	PostValidate(any) *Model
-	PreSave(any) *Model
-	PostSave(any) *Model
-	PreCreate(any) *Model
-	PostCreate(any) *Model
-	PreUpdate(any) *Model
-	PostUpdate(any) *Model
-	PreRemove(any) *Model
-	PostRemove(any) *Model
+	preValidate(any) *Model
+	postValidate(any) *Model
+	preSave(any) *Model
+	postSave(any) *Model
+	preCreate(any) *Model
+	postCreate(any) *Model
+	preUpdate(any) *Model
+	postUpdate(any) *Model
+	preRemove(any) *Model
+	postRemove(any) *Model
 
 	CreateOne(obj any) (doc *Document, err error)
 	CreateMany(any) ([]Document, error)
