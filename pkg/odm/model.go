@@ -1,14 +1,10 @@
 package odm
 
-import (
-	"net/url"
-)
-
-type ModelRegistry map[string]Schema
+type ModelRegistry map[string]Model
 
 var modelRegistry = ModelRegistry{}
 
-func GetModel(name string) Schema {
+func GetModel(name string) Model {
 	return modelRegistry[name]
 }
 
@@ -24,7 +20,7 @@ type Model interface {
 	preRemove(any) *Model
 	postRemove(any) *Model
 
-	CreateOne(obj any) (doc *Document, err error)
+	CreateOne(any) (*Document, error)
 	CreateMany(any) ([]Document, error)
 	FindOne(any) (*Document, error)
 	FindMany(any) ([]Document, error)
@@ -35,7 +31,7 @@ type Model interface {
 }
 
 func RegisterModel(name string, spec []byte, hooks *Hooks) error {
-	vfunc, err := ValidateSpec(name, spec)
+	vfunc, err := validateSpec(name, spec)
 	if err != nil {
 		return err
 	}
@@ -47,8 +43,4 @@ func RegisterModel(name string, spec []byte, hooks *Hooks) error {
 	}
 	modelRegistry[name] = s
 	return nil
-}
-
-func encodeURL(s string) string {
-	return url.QueryEscape(s)
 }

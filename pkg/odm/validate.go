@@ -6,72 +6,80 @@ import (
 	"errors"
 	"fmt"
 	"github.com/santhosh-tekuri/jsonschema/v5"
+	"net/url"
 )
 
-func ValidateSpec(name string, spec []byte) (func(any) error, error) {
-	url := encodeURL(name)
-
+func validateSpec(name string, spec []byte) (func(any) error, error) {
+	url := url.QueryEscape(name)
 	compiler := jsonschema.NewCompiler()
 	if err := compiler.AddResource(url, bytes.NewReader(spec)); err != nil {
 		return nil, err
 	}
-
 	schema, err := compiler.Compile(url)
 	if err != nil {
 		return nil, err
 	}
-
-	vfunc := func(obj any) error {
-		return validate(obj, schema.Validate)
-	}
-	return vfunc, nil
+	return makeValidator(schema.Validate), nil
 }
 
-func validate(in any, vfunc func(any) error) error {
-	buf, err := json.Marshal(in)
+func makeValidator(validator func(any) error) (func(any) error) {
+	return func(obj any) error {
+		return validateStructWithFunc(obj, validator)
+	}
+}
+
+func validateStructWithFunc(v any, validator func(any) error) error {
+	obj, err := structToInterface(v)
 	if err != nil {
 		return err
 	}
-	var obj interface{}
-	if err := json.Unmarshal(buf, &obj); err != nil {
+	if obj, err = keysToString(obj); err != nil {
 		return err
 	}
-	obj, err = toStringKeys(obj)
-	if err != nil {
-		return err
-	}
-	if err := vfunc(obj); err != nil {
+	if err := validator(obj); err != nil {
 		return err
 	}
 	return nil
 }
 
-func toStringKeys(val interface{}) (interface{}, error) {
+func structToInterface(in any) (any, error) {
+	s, err := json.Marshal(in)
+	if err != nil {
+		return nil, err
+	}
+	var out any
+	if err := json.Unmarshal(s, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func keysToString(in any) (any, error) {
 	var err error
-	switch val := val.(type) {
-	case map[interface{}]interface{}:
-		m := make(map[string]interface{})
-		for k, v := range val {
+	switch v := in.(type) {
+	case map[any]any:
+		m := make(map[string]any)
+		for k, v := range v {
 			k, ok := k.(string)
 			if !ok {
 				return nil, errors.New(fmt.Sprintf("found non-string key: %+v", k))
 			}
-			m[k], err = toStringKeys(v)
+			m[k], err = keysToString(v)
 			if err != nil {
 				return nil, err
 			}
 		}
 		return m, nil
-	case []interface{}:
-		var l = make([]interface{}, len(val))
-		for i, v := range val {
-			l[i], err = toStringKeys(v)
+	case []any:
+		l := make([]any, len(v))
+		for i, v := range v {
+			l[i], err = keysToString(v)
 			if err != nil {
 				return nil, err
 			}
 		}
 		return l, nil
 	default:
-		return val, nil
+		return v, nil
 	}
 }

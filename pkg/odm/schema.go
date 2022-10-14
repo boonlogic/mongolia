@@ -13,47 +13,47 @@ type Schema struct {
 	Hooks      *Hooks
 }
 
-func (s *Schema) preValidate(any) *Model {
+func (s Schema) preValidate(any) *Model {
 	return nil
 }
 
-func (s *Schema) postValidate(any) *Model {
+func (s Schema) postValidate(any) *Model {
 	return nil
 }
 
-func (s *Schema) preSave(any) *Model {
+func (s Schema) preSave(any) *Model {
 	return nil
 }
 
-func (s *Schema) postSave(any) *Model {
+func (s Schema) postSave(any) *Model {
 	return nil
 }
 
-func (s *Schema) preCreate(any) *Model {
+func (s Schema) preCreate(any) *Model {
 	return nil
 }
 
-func (s *Schema) postCreate(any) *Model {
+func (s Schema) postCreate(any) *Model {
 	return nil
 }
 
-func (s *Schema) preUpdate(any) *Model {
+func (s Schema) preUpdate(any) *Model {
 	return nil
 }
 
-func (s *Schema) postUpdate(any) *Model {
+func (s Schema) postUpdate(any) *Model {
 	return nil
 }
 
-func (s *Schema) preRemove(any) *Model {
+func (s Schema) preRemove(any) *Model {
 	return nil
 }
 
-func (s *Schema) postRemove(any) *Model {
+func (s Schema) postRemove(any) *Model {
 	return nil
 }
 
-func (s *Schema) CreateOne(obj any) (*Document, error) {
+func (s Schema) CreateOne(obj any) (*Document, error) {
 	if err := s.Validator(obj); err != nil {
 		return nil, err
 	}
@@ -72,8 +72,8 @@ func (s *Schema) CreateOne(obj any) (*Document, error) {
 	return &d, nil
 }
 
-func (s *Schema) CreateMany(objSlice any) ([]Document, error) {
-	objs, ok := objSlice.([]any)
+func (s Schema) CreateMany(objArr any) ([]Document, error) {
+	objs, ok := objArr.([]any)
 	if !ok {
 		return nil, errors.New("CreateMany must take a slice as argument")
 	}
@@ -111,7 +111,7 @@ func (s *Schema) CreateMany(objSlice any) ([]Document, error) {
 	return docs, nil
 }
 
-func (s *Schema) FindOne(any) (*Document, error) {
+func (s Schema) FindOne(any) (*Document, error) {
 	var doc *Document
 	if err := db.Collection(s.Name).FindOne(ctx(), bson.D{}).Decode(&doc); err != nil {
 		return nil, err
@@ -119,7 +119,7 @@ func (s *Schema) FindOne(any) (*Document, error) {
 	return doc, nil
 }
 
-func (s *Schema) FindMany(any) ([]Document, error) {
+func (s Schema) FindMany(any) ([]Document, error) {
 	cur, err := db.Collection(s.Name).Find(ctx(), bson.D{})
 	if err != nil {
 		return nil, err
@@ -131,19 +131,19 @@ func (s *Schema) FindMany(any) ([]Document, error) {
 	return docs, nil
 }
 
-func (s *Schema) UpdateOne(any) (*Document, error) {
+func (s Schema) UpdateOne(any) (*Document, error) {
 	return nil, nil
 }
 
-func (s *Schema) UpdateMany(any) ([]Document, error) {
+func (s Schema) UpdateMany(any) ([]Document, error) {
 	return nil, nil
 }
 
-func (s *Schema) RemoveOne(any) (*Document, error) {
+func (s Schema) RemoveOne(any) (*Document, error) {
 	return nil, nil
 }
 
-func (s *Schema) RemoveMany(any) ([]Document, error) {
+func (s Schema) RemoveMany(any) ([]Document, error) {
 	return nil, nil
 }
 
