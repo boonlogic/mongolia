@@ -86,4 +86,19 @@ func TestSmoke(t *testing.T) {
 	doc, err = roles.UpdateOne(nil)
 	require.Nil(t, err)
 	require.NotNil(t, doc)
+
+	// Update many documents.
+	docs, err = roles.UpdateMany(nil)
+	require.Nil(t, err)
+	require.Len(t, docs, 4)
+
+	// Delete one document.
+	doc, err = roles.RemoveOne(nil)
+	require.Nil(t, err)
+	require.NotNil(t, doc)
+
+	// Delete many documents.
+	docs, err = roles.RemoveMany(nil)
+	require.Nil(t, err)
+	require.Len(t, docs, 3)
 }
