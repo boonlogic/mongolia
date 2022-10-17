@@ -19,10 +19,6 @@ run:
 test:
 	go test -cover ./...
 
-generate:
-	@echo "generate..."
-	go generate ./...
-
 tidy:
 	@echo "tidy..."
 	go mod tidy
