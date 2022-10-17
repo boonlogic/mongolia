@@ -9,6 +9,11 @@ import (
 	"net/url"
 )
 
+// todo: factor out compiler into a singleton
+// todo: separate func that after validation/registry is done, returns the decorated validator funcs (it has to get those off the singleton)
+
+// Ensure that the jsonschema spec for a odm type is valid.
+// Produces a specialized validator func for this odm type.
 func validateSpec(name string, spec []byte) (func(any) error, error) {
 	url := url.QueryEscape(name)
 	compiler := jsonschema.NewCompiler()
@@ -22,12 +27,14 @@ func validateSpec(name string, spec []byte) (func(any) error, error) {
 	return makeValidator(schema.Validate), nil
 }
 
+// Decorate validator function with signature that calls it against `obj`.
 func makeValidator(validator func(any) error) (func(any) error) {
 	return func(obj any) error {
 		return validateStructWithFunc(obj, validator)
 	}
 }
 
+// Call validator function against struct
 func validateStructWithFunc(v any, validator func(any) error) error {
 	obj, err := structToInterface(v)
 	if err != nil {

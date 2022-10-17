@@ -12,4 +12,3 @@ type Hooks struct {
 	PreRemove    func(any) *Model
 	PostRemove   func(any) *Model
 }
-
