@@ -1,14 +1,14 @@
 package odm
 
 type Hooks struct {
-	PreValidate  func(any) *Model
-	PostValidate func(any) *Model
-	PreSave      func(any) *Model
-	PostSave     func(any) *Model
-	PreCreate    func(any) *Model
-	PostCreate   func(any) *Model
-	PreUpdate    func(any) *Model
-	PostUpdate   func(any) *Model
-	PreRemove    func(any) *Model
-	PostRemove   func(any) *Model
+	PreValidate  func() error
+	PostValidate func() error
+	PreSave      func() error
+	PostSave     func() error
+	PreCreate    func() error
+	PostCreate   func() error
+	PreUpdate    func() error
+	PostUpdate   func() error
+	PreRemove    func() error
+	PostRemove   func() error
 }

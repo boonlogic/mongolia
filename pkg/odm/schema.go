@@ -18,44 +18,74 @@ type Schema struct {
 	Hooks      *Hooks
 }
 
-func (s Schema) preValidate(any) *Model {
-	return nil
+func (s Schema) preValidate() error {
+	if s.Hooks.PreValidate == nil {
+		return nil
+	}
+	return s.Hooks.PreValidate()
 }
 
-func (s Schema) postValidate(any) *Model {
-	return nil
+func (s Schema) postValidate() error {
+	if s.Hooks.PostValidate == nil {
+		return nil
+	}
+	return s.Hooks.PostValidate()
 }
 
-func (s Schema) preSave(any) *Model {
-	return nil
+func (s Schema) preCreate() error {
+	if s.Hooks.PreCreate == nil {
+		return nil
+	}
+	return s.Hooks.PreCreate()
 }
 
-func (s Schema) postSave(any) *Model {
-	return nil
+func (s Schema) preUpdate() error {
+	if s.Hooks.PreUpdate == nil {
+		return nil
+	}
+	return s.Hooks.PreUpdate()
 }
 
-func (s Schema) preCreate(any) *Model {
-	return nil
+func (s Schema) preSave() error {
+	if s.Hooks.PreSave == nil {
+		return nil
+	}
+	return s.Hooks.PreSave()
 }
 
-func (s Schema) postCreate(any) *Model {
-	return nil
+func (s Schema) preRemove() error {
+	if s.Hooks.PreRemove == nil {
+		return nil
+	}
+	return s.Hooks.PreRemove()
 }
 
-func (s Schema) preUpdate(any) *Model {
-	return nil
+func (s Schema) postCreate() error {
+	if s.Hooks.PostCreate == nil {
+		return nil
+	}
+	return s.Hooks.PostCreate()
 }
 
-func (s Schema) postUpdate(any) *Model {
-	return nil
+func (s Schema) postUpdate() error {
+	if s.Hooks.PostUpdate == nil {
+		return nil
+	}
+	return s.Hooks.PostUpdate()
 }
 
-func (s Schema) preRemove(any) *Model {
-	return nil
+func (s Schema) postSave() error {
+	if s.Hooks.PostSave == nil {
+		return nil
+	}
+	return s.Hooks.PostSave()
 }
 
-func (s Schema) postRemove(any) *Model {
-	return nil
+func (s Schema) postRemove() error {
+	if s.Hooks.PostRemove == nil {
+		return nil
+	}
+	return s.Hooks.PostRemove()
 }
 
 // Mongo driver by default creates field names from the struct field name lowercase.
@@ -92,7 +122,8 @@ func (s Schema) CreateOne(obj any) (*Document, error) {
 		return nil
 	}
 
-	if err := transact(ctx(), fn); err != nil {
+	//if err := transact(ctx(), fn); err != nil {
+	if err := fn(ctx()); err != nil {
 		return nil, err
 	}
 	return doc, nil
@@ -132,7 +163,8 @@ func (s Schema) CreateMany(objs any) ([]Document, error) {
 		return nil
 	}
 
-	if err := transact(ctx(), fn); err != nil {
+	//if err := transact(ctx(), fn); err != nil {
+	if err := fn(ctx()); err != nil {
 		return nil, err
 	}
 	return docs, nil
@@ -166,6 +198,7 @@ func (s Schema) UpdateOne(any) (*Document, error) {
 		"$unset": bson.M{"unset_me": 1},
 	}
 	opts := options.FindOneAndUpdate().SetUpsert(false).SetReturnDocument(options.After)
+
 	var doc *Document
 	err := db.Collection(s.Name).FindOneAndUpdate(ctx(), filter, update, opts).Decode(&doc); if err != nil {
 		return nil, err
@@ -204,7 +237,8 @@ func (s Schema) UpdateMany(any) ([]Document, error) {
 		return nil
 	}
 
-	if err := transact(ctx(), fn); err != nil {
+	//if err := transact(ctx(), fn); err != nil {
+	if err := fn(ctx()); err != nil {
 		return nil, err
 	}
 	return docs, nil
@@ -246,7 +280,8 @@ func (s Schema) RemoveMany(any) ([]Document, error) {
 		return nil
 	}
 
-	if err := transact(ctx(), fn); err != nil {
+	//if err := transact(ctx(), fn); err != nil {
+	if err := fn(ctx()); err != nil {
 		return nil, err
 	}
 	return docs, nil

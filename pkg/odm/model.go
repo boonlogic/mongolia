@@ -9,16 +9,35 @@ func GetModel(name string) Model {
 }
 
 type Model interface {
-	preValidate(any) *Model
-	postValidate(any) *Model
-	preSave(any) *Model
-	postSave(any) *Model
-	preCreate(any) *Model
-	postCreate(any) *Model
-	preUpdate(any) *Model
-	postUpdate(any) *Model
-	preRemove(any) *Model
-	postRemove(any) *Model
+	// preValidate is triggered before a document is validated against the schema.
+	preValidate() error
+
+	// postValidate is triggered after a document is validate against the schema.
+	postValidate() error
+
+	// preCreate is triggered after postValidate and before inserting a document.
+	preCreate() error
+
+	// preUpdate is triggered after postValidate and before updating a document.
+	preUpdate() error
+
+	// preSave is triggered after preCreate/preUpdate and before inserting or updating a document.
+	preSave() error
+
+	// preRemove is triggered before removing a document.
+	preRemove() error
+
+	// postCreate is triggered after inserting a document.
+	postCreate() error
+
+	// postUpdate is triggered after updating a document.
+	postUpdate() error
+
+	// postSave is triggered after postCreate/postUpdate, after inserting or updating a document.
+	postSave() error
+
+	// postRemove is triggered after removing a document.
+	postRemove() error
 
 	CreateOne(any) (*Document, error)
 	CreateMany(any) ([]Document, error)

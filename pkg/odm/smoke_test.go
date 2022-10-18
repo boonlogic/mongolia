@@ -21,7 +21,7 @@ func TestSmoke(t *testing.T) {
 	require.Nil(t, err)
 
 	// Create an example hook function.
-	preValidate := func(any) *Model {
+	preValidate := func() error {
 		fmt.Println("prevalidating...")
 		return nil
 	}
