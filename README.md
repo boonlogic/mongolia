@@ -1,13 +1,13 @@
-mongolia
-========
+mongodm
+=======
 
-Golang object document mapper for mongo.
+Mongo object document mapper for golang.
 
 Setup
 -----
 From top level of `builder`:
-1. run `make mongolia-env` to installs environment dependencies
-2. run `make mongolia-pull` to pull the latest source
+1. run `make mongodm-env` to installs environment dependencies
+2. run `make mongodm-pull` to pull the latest source
 
 Usage
 -----

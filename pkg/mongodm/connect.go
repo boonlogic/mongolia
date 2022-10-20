@@ -1,4 +1,4 @@
-package odm
+package mongodm
 
 import (
 	"context"
@@ -10,11 +10,7 @@ import (
 
 var db *mongo.Database
 
-func ctx() context.Context {
-	return context.Background()
-}
-
-func Connect() error {
+func Connect(config Config) error {
 	opts := options.Client().ApplyURI(config.URI)
 	client, err := mongo.Connect(ctx(), opts)
 	if err != nil {
@@ -24,18 +20,21 @@ func Connect() error {
 	return nil
 }
 
-func Drop() error {
+func ctx() context.Context {
+	return context.Background()
+}
+
+func drop() {
 	allowList := []string{
-		"mongolia-dev",
-		"mongolia-test",
+		"mongodm-local",
 	}
 	for _, s := range allowList {
 		if db.Name() == s {
 			if err := db.Drop(ctx()); err != nil {
-				return err
+				panic(err)
 			}
-			return nil
+			return
 		}
 	}
-	return errors.New(fmt.Sprintf("dropping database '%s' is not allowed", db.Name()))
+	panic(errors.New(fmt.Sprintf("dropping database '%s' is not allowed", db.Name())))
 }

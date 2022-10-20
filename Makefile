@@ -14,7 +14,7 @@ TOP?=$(shell cd .. && git rev-parse --show-toplevel)
 export
 
 run:
-	go run ./cmd/mongolia
+	go run ./cmd/mongodm
 
 test:
 	go test -cover ./...
