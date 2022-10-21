@@ -40,10 +40,10 @@ func (s Schema) CreateOne(attr Attributes) (*Document, error) {
 		return nil
 	}
 
-	if err := s.preValidate(&doc); err != nil {
+	if err := s.preValidate(&attr); err != nil {
 		return nil, err
 	}
-	if err := s.validate(&doc); err != nil {
+	if err := s.validate(&attr); err != nil {
 		return nil, err
 	}
 	if err := s.postValidate(&doc); err != nil {
