@@ -5,35 +5,34 @@ var collections = make(map[string]Collection)
 
 type Collection interface {
 	// CreateOne adds a document to the collection.
-	CreateOne(any) (*Document, error)
+	CreateOne(Attributes) (*Document, error)
 
 	// CreateMany adds multiple documents to the collection.
-	CreateMany(any) ([]Document, error)
+	CreateMany([]Attributes) ([]Document, error)
 
 	// FindOne finds a document.
-	FindOne(any) (*Document, error)
+	FindOne(Query) (*Document, error)
 
 	// FindMany finds multiple documents.
-	FindMany(any) ([]Document, error)
+	FindMany(Query) ([]Document, error)
 
 	// UpdateOne updates a document.
-	UpdateOne(any) (*Document, error)
+	UpdateOne(Query, Attributes) (*Document, error)
 
 	// UpdateMany updates multiple documents.
-	UpdateMany(any) ([]Document, error)
+	UpdateMany(Query, Attributes) ([]Document, error)
 
 	// RemoveOne deletes a document.
-	RemoveOne(any) (*Document, error)
+	RemoveOne(Query) (*Document, error)
 
 	// RemoveMany deletes many documents.
-	RemoveMany(any) ([]Document, error)
+	RemoveMany(Query) ([]Document, error)
 }
 
 func GetCollection(name string) (Collection, bool) {
-	s, ok := collections[name]
+	c, ok := collections[name]
 	if !ok {
 		return nil, false
 	}
-	m := Collection(s)
-	return m, true
+	return c, true
 }

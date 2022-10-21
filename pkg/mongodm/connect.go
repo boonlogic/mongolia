@@ -10,7 +10,7 @@ import (
 
 var db *mongo.Database
 
-func Connect(config Config) error {
+func Connect(config *Config) error {
 	opts := options.Client().ApplyURI(config.URI)
 	client, err := mongo.Connect(ctx(), opts)
 	if err != nil {

@@ -1,5 +1,6 @@
 package mongodm
 
+// Hooks accept a document and operate on it at certain points in the access cycle.
 type Hooks struct {
 	PreValidate  func(*Document) error
 	PostValidate func(*Document) error

@@ -9,37 +9,45 @@ import (
 )
 
 func TestSmoke(t *testing.T) {
+	// Setup
 	cfg := NewConfigFromEnvironment()
-	err := Connect(*cfg)
-	require.Nil(t, err)
-	drop()
-
-	// Load schema definition.
-	path := "schemas/role.json"
-	def, err := ioutil.ReadFile(path)
+	err := Connect(cfg)
 	require.Nil(t, err)
 
-	// Define any hook functions for this schema.
-	hooks := myHooks()
+	drop() // cleanup from last test
 
-	// Register our schema + hooks as an ODM model, getting a Collection
-	// which is a handle to the object store that returns Documents.
-	AddSchema("roles", def, hooks)
+	spec1, err := NewSpecFromFile("schemas/role.json")
+	require.Nil(t, err)
+	data, err := ioutil.ReadFile("schemas/role.json")
+	require.Nil(t, err)
+	spec2, err := NewSpecFromJSON(data)
+	require.Nil(t, err)
+
+	hooks1 := myHooks()
+	hooks2 := myHooks()
+
+	err = AddSchema("roles", *spec1, hooks1)
+	require.Nil(t, err)
+	err = AddSchema("roles2", *spec2, hooks2)
+	require.Nil(t, err)
+
 	roles, ok := GetCollection("roles")
 	require.True(t, ok)
+	_, ok = GetCollection("roles2")
+	require.True(t, ok)
 
-	// Define the struct which will be mapped to/from the model.
+	// Usage
 	type Role struct {
 		ID          primitive.ObjectID `json:"id" bson:"id"`
 		Name        string             `json:"name" bson:"name"`
 		Permissions []string           `json:"permissions" bson:"permissions"`
 	}
-
-	// Create a role document from the Role struct.
 	r := &Role{
 		Name:        "admin",
 		Permissions: []string{"+:*:*"},
 	}
+
+	// Create a role document from the Role struct.
 	doc, err := roles.CreateOne(r)
 	require.Nil(t, err)
 	require.NotNil(t, doc)

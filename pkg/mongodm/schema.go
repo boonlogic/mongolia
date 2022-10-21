@@ -16,30 +16,27 @@ type Schema struct {
 	hooks      *Hooks            // function pointers for hooks
 }
 
-func (s Schema) CreateOne(obj any) (*Document, error) {
-	var doc Document
-
-	// Convert the object into a document.
-	buf, err := bson.Marshal(obj)
+// document accepts a .
+func convertToDocument(obj any) (Document, error) {
+	buf, err := bson.MarshalExtJSON(obj, true, false)
 	if err != nil {
 		return nil, err
 	}
-	if err := bson.Unmarshal(buf, &doc); err != nil {
+	var doc Document
+	if err := bson.UnmarshalExtJSON(buf, true, &doc); err != nil {
 		return nil, err
 	}
+	return doc, nil
+}
 
-	// Define a closure that inserts document and populates its id field.
-	createOne := func(ctx context.Context, doc *Document) error {
-		res, err := s.collection.InsertOne(ctx, doc)
+// CreateOne accepts a struct with struct tags
+func (s Schema) CreateOne(attr Attributes) (*Document, error) {
+	createOne := func(ctx context.Context, attr *Attributes) error {
+		res, err := s.collection.InsertOne(ctx, attr)
 		if err != nil {
 			return err
 		}
-		id := res.InsertedID.(primitive.ObjectID)
-		for i := range *doc {
-			if (*doc)[i].Key == "id" {
-				(*doc)[i].Value = id
-			}
-		}
+		(*attr)["id"] = res.InsertedID.(primitive.ObjectID)
 		return nil
 	}
 
@@ -71,18 +68,22 @@ func (s Schema) CreateOne(obj any) (*Document, error) {
 	return &out, nil
 }
 
-func (s Schema) CreateMany(objs any) ([]Document, error) {
-	arr := objs.([]any)
-	for _, obj := range arr {
-		if err := s.validate(obj); err != nil {
+func (s Schema) CreateMany(attrs []Attributes) ([]Document, error) {
+	for _, v := range attrs {
+		if err := s.validate(v); err != nil {
 			return nil, err
 		}
 	}
 
 	var docs []Document
 
+	// todo: use for loop and CreateOne
 	fn := func(ctx context.Context) error {
-		// Insert documents.
+		arr := make([]any, 0)
+		for _, v := range attrs {
+			arr = append(arr, any(v))
+		}
+
 		res, err := s.collection.InsertMany(ctx, arr)
 		if err != nil {
 			return err
@@ -93,13 +94,12 @@ func (s Schema) CreateMany(objs any) ([]Document, error) {
 			ids[i] = v.(primitive.ObjectID)
 		}
 
-		// Find inserted documents.
 		filter := bson.M{"_id": bson.M{"$in": ids}}
 		cur, err := s.collection.Find(ctx, filter)
 		if err != nil {
 			return err
 		}
-		if err := cur.All(ctx, &docs); err != nil {
+		if err := cur.All(ctx, &res); err != nil {
 			return err
 		}
 		return nil
@@ -111,7 +111,7 @@ func (s Schema) CreateMany(objs any) ([]Document, error) {
 	return docs, nil
 }
 
-func (s Schema) FindOne(any) (*Document, error) {
+func (s Schema) FindOne(query Query) (*Document, error) {
 	filter := bson.M{}
 	var doc *Document
 	if err := s.collection.FindOne(ctx(), filter).Decode(&doc); err != nil {
@@ -120,7 +120,7 @@ func (s Schema) FindOne(any) (*Document, error) {
 	return doc, nil
 }
 
-func (s Schema) FindMany(any) ([]Document, error) {
+func (s Schema) FindMany(query Query) ([]Document, error) {
 	filter := bson.M{}
 	cur, err := s.collection.Find(ctx(), filter)
 	if err != nil {
@@ -133,7 +133,7 @@ func (s Schema) FindMany(any) ([]Document, error) {
 	return docs, nil
 }
 
-func (s Schema) UpdateOne(any) (*Document, error) {
+func (s Schema) UpdateOne(query Query, attr Attributes) (*Document, error) {
 	filter := bson.M{}
 	update := bson.M{
 		"$unset": bson.M{"unset_me": 1},
@@ -148,7 +148,7 @@ func (s Schema) UpdateOne(any) (*Document, error) {
 	return doc, nil
 }
 
-func (s Schema) UpdateMany(any) ([]Document, error) {
+func (s Schema) UpdateMany(query Query, attr Attributes) ([]Document, error) {
 	var docs []Document
 
 	fn := func(ctx context.Context) error {
@@ -185,7 +185,7 @@ func (s Schema) UpdateMany(any) ([]Document, error) {
 	return docs, nil
 }
 
-func (s Schema) RemoveOne(any) (*Document, error) {
+func (s Schema) RemoveOne(query Query) (*Document, error) {
 	filter := bson.M{}
 	var doc *Document
 	if err := s.collection.FindOneAndDelete(ctx(), filter).Decode(&doc); err != nil {
@@ -194,7 +194,7 @@ func (s Schema) RemoveOne(any) (*Document, error) {
 	return doc, nil
 }
 
-func (s Schema) RemoveMany(any) ([]Document, error) {
+func (s Schema) RemoveMany(query Query) ([]Document, error) {
 	var docs []Document
 
 	fn := func(ctx context.Context) error {
