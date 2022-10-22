@@ -32,7 +32,7 @@ func convertToDocument(obj any) (Document, error) {
 // CreateOne accepts a struct with struct tags
 func (s Schema) CreateOne(attr Attributes) (*Document, error) {
 	createOne := func(ctx context.Context, attr *Attributes) error {
-		res, err := s.collection.InsertOne(ctx, attr)
+		res, err := s.collection.InsertOne(ctx, attr.M())
 		if err != nil {
 			return err
 		}
