@@ -6,6 +6,7 @@ import (
 	"gitlab.boonlogic.com/development/expert/mongolia/mongodm/options"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -19,7 +20,9 @@ func TestSmoke(t *testing.T) {
 	err := Configure(opts)
 	require.Nil(t, err)
 
-	Drop() // cleanup from last test
+	Drop()
+
+	os.Exit(0)
 
 	spec1, err := NewSpecFromFile("schemas/role.json")
 	require.Nil(t, err)
