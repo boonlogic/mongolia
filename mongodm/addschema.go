@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/santhosh-tekuri/jsonschema/v5"
-	"gitlab.boonlogic.com/development/expert/mongolia/pkg/mongodm/options"
 	"io/ioutil"
 	"net/url"
 )
