@@ -1,4 +1,4 @@
-package types
+package mongodm
 
 import (
 	"go.mongodb.org/mongo-driver/bson"

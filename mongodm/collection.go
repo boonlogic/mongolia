@@ -2,7 +2,6 @@ package mongodm
 
 import (
 	options2 "gitlab.boonlogic.com/development/expert/mongolia/pkg/mongodm/options"
-	"gitlab.boonlogic.com/development/expert/mongolia/pkg/mongodm/types"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -10,14 +9,14 @@ import (
 )
 
 // Singleton containing all collections.
-var collections = make(map[string]*CollectionNew)
+var collections = make(map[string]*Collection)
 
-type CollectionNew struct {
+type Collection struct {
 	name string
 	coll *mongo.Collection
 }
 
-func GetCollection(name string) (*CollectionNew, bool) {
+func GetCollection(name string) (*Collection, bool) {
 	c, ok := collections[name]
 	if !ok {
 		return nil, false
@@ -25,8 +24,8 @@ func GetCollection(name string) (*CollectionNew, bool) {
 	return &c, true
 }
 
-func (c CollectionNew) CreateOne(attr types.Attributes) (*types.Document, error) {
-	createOne := func(ctx context.Context, attr *types.Attributes) error {
+func (c Collection) CreateOne(attr Attributes) (*Document, error) {
+	createOne := func(ctx context.Context, attr *Attributes) error {
 		res, err := c.collection.InsertOne(ctx, attr.M())
 		if err != nil {
 			return err
@@ -59,18 +58,18 @@ func (c CollectionNew) CreateOne(attr types.Attributes) (*types.Document, error)
 	if err := c.postSave(&doc); err != nil {
 		return nil, err
 	}
-	out := types.Document(doc)
+	out := Document(doc)
 	return &out, nil
 }
 
-func (c CollectionNew) CreateMany(attrs []types.Attributes) ([]types.Document, error) {
+func (c Collection) CreateMany(attrs []Attributes) ([]Document, error) {
 	for _, v := range attrs {
 		if err := c.validate(v); err != nil {
 			return nil, err
 		}
 	}
 
-	var docs []types.Document
+	var docs []Document
 
 	// todo: use for loop and CreateOne
 	fn := func(ctx context.Context) error {
@@ -106,36 +105,36 @@ func (c CollectionNew) CreateMany(attrs []types.Attributes) ([]types.Document, e
 	return docs, nil
 }
 
-func (c CollectionNew) FindOne(query Query) (*types.Document, error) {
+func (c Collection) FindOne(query Query) (*Document, error) {
 	filter := bson.M{}
-	var doc *types.Document
+	var doc *Document
 	if err := c.collection.FindOne(options2.ctx(), filter).Decode(&doc); err != nil {
 		return nil, err
 	}
 	return doc, nil
 }
 
-func (c CollectionNew) FindMany(query Query) ([]types.Document, error) {
+func (c Collection) FindMany(query Query) ([]Document, error) {
 	filter := bson.M{}
 	cur, err := c.collection.Find(options2.ctx(), filter)
 	if err != nil {
 		return nil, err
 	}
-	var docs []types.Document
+	var docs []Document
 	if err := cur.All(options2.ctx(), &docs); err != nil {
 		return nil, err
 	}
 	return docs, nil
 }
 
-func (c CollectionNew) UpdateOne(query Query, attr types.Attributes) (*types.Document, error) {
+func (c Collection) UpdateOne(query Query, attr Attributes) (*Document, error) {
 	filter := bson.M{}
 	update := bson.M{
 		"$unset": bson.M{"unset_me": 1},
 	}
 	opts := options.FindOneAndUpdate().SetUpsert(false).SetReturnDocument(options.After)
 
-	var doc *types.Document
+	var doc *Document
 	err := c.collection.FindOneAndUpdate(options2.ctx(), filter, update, opts).Decode(&doc)
 	if err != nil {
 		return nil, err
@@ -143,8 +142,8 @@ func (c CollectionNew) UpdateOne(query Query, attr types.Attributes) (*types.Doc
 	return doc, nil
 }
 
-func (c CollectionNew) UpdateMany(query Query, attr types.Attributes) ([]types.Document, error) {
-	var docs []types.Document
+func (c Collection) UpdateMany(query Query, attr Attributes) ([]Document, error) {
+	var docs []Document
 
 	fn := func(ctx context.Context) error {
 		filter := bson.M{}
@@ -180,17 +179,17 @@ func (c CollectionNew) UpdateMany(query Query, attr types.Attributes) ([]types.D
 	return docs, nil
 }
 
-func (c CollectionNew) RemoveOne(query Query) (*types.Document, error) {
+func (c Collection) RemoveOne(query Query) (*Document, error) {
 	filter := bson.M{}
-	var doc *types.Document
+	var doc *Document
 	if err := c.collection.FindOneAndDelete(options2.ctx(), filter).Decode(&doc); err != nil {
 		return nil, err
 	}
 	return doc, nil
 }
 
-func (c CollectionNew) RemoveMany(query Query) ([]types.Document, error) {
-	var docs []types.Document
+func (c Collection) RemoveMany(query Query) ([]Document, error) {
+	var docs []Document
 
 	fn := func(ctx context.Context) error {
 		filter := bson.M{}
@@ -223,7 +222,7 @@ func (c CollectionNew) RemoveMany(query Query) ([]types.Document, error) {
 }
 
 // preValidate is triggered before a document is validated against the schema.
-func (c CollectionNew) preValidate(doc *types.Document) error {
+func (c Collection) preValidate(doc *Document) error {
 	if c.hooks.PreValidate == nil {
 		return nil
 	}
@@ -231,7 +230,7 @@ func (c CollectionNew) preValidate(doc *types.Document) error {
 }
 
 // postValidate is triggered after a document is validate against the schema.
-func (c CollectionNew) postValidate(doc *types.Document) error {
+func (c Collection) postValidate(doc *Document) error {
 	if c.hooks.PostValidate == nil {
 		return nil
 	}
@@ -239,7 +238,7 @@ func (c CollectionNew) postValidate(doc *types.Document) error {
 }
 
 // preCreate is triggered after postValidate and before inserting a document.
-func (c CollectionNew) preCreate(doc *types.Document) error {
+func (c Collection) preCreate(doc *Document) error {
 	if c.hooks.PreCreate == nil {
 		return nil
 	}
@@ -247,7 +246,7 @@ func (c CollectionNew) preCreate(doc *types.Document) error {
 }
 
 // preUpdate is triggered after postValidate and before updating a document.
-func (c CollectionNew) preUpdate(doc *types.Document) error {
+func (c Collection) preUpdate(doc *Document) error {
 	if c.hooks.PreUpdate == nil {
 		return nil
 	}
@@ -255,7 +254,7 @@ func (c CollectionNew) preUpdate(doc *types.Document) error {
 }
 
 // preSave is triggered after preCreate/preUpdate and before inserting or updating a document.
-func (c CollectionNew) preSave(doc *types.Document) error {
+func (c Collection) preSave(doc *Document) error {
 	if c.hooks.PreSave == nil {
 		return nil
 	}
@@ -263,7 +262,7 @@ func (c CollectionNew) preSave(doc *types.Document) error {
 }
 
 // preRemove is triggered before removing a document.
-func (c CollectionNew) preRemove(doc *types.Document) error {
+func (c Collection) preRemove(doc *Document) error {
 	if c.hooks.PreRemove == nil {
 		return nil
 	}
@@ -271,7 +270,7 @@ func (c CollectionNew) preRemove(doc *types.Document) error {
 }
 
 // postCreate is triggered after inserting a document.
-func (c CollectionNew) postCreate(doc *types.Document) error {
+func (c Collection) postCreate(doc *Document) error {
 	if c.hooks.PostCreate == nil {
 		return nil
 	}
@@ -279,7 +278,7 @@ func (c CollectionNew) postCreate(doc *types.Document) error {
 }
 
 // postUpdate is triggered after updating a document.
-func (c CollectionNew) postUpdate(doc *types.Document) error {
+func (c Collection) postUpdate(doc *Document) error {
 	if c.hooks.PostUpdate == nil {
 		return nil
 	}
@@ -287,7 +286,7 @@ func (c CollectionNew) postUpdate(doc *types.Document) error {
 }
 
 // postSave is triggered after postCreate and postUpdate, after inserting or updating a document.
-func (c CollectionNew) postSave(doc *types.Document) error {
+func (c Collection) postSave(doc *Document) error {
 	if c.hooks.PostSave == nil {
 		return nil
 	}
@@ -295,7 +294,7 @@ func (c CollectionNew) postSave(doc *types.Document) error {
 }
 
 // postRemove is triggered after removing a document.
-func (c CollectionNew) postRemove(doc *types.Document) error {
+func (c Collection) postRemove(doc *Document) error {
 	if c.hooks.PostRemove == nil {
 		return nil
 	}
