@@ -3,24 +3,29 @@ package mongodm
 import (
 	"fmt"
 	"github.com/stretchr/testify/require"
+	"gitlab.boonlogic.com/development/expert/mongolia/pkg/mongodm/options"
+	"gitlab.boonlogic.com/development/expert/mongolia/pkg/mongodm/types"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"io/ioutil"
 	"testing"
 )
 
 func TestSmoke(t *testing.T) {
+
+	mongo.Client
 	// Setup
-	cfg := NewConfigFromEnvironment()
+	cfg := options.NewConfigFromEnvironment()
 	err := Connect(cfg)
 	require.Nil(t, err)
 
-	drop() // cleanup from last test
+	options.drop() // cleanup from last test
 
-	spec1, err := NewSpecFromFile("schemas/role.json")
+	spec1, err := types.NewSpecFromFile("schemas/role.json")
 	require.Nil(t, err)
 	data, err := ioutil.ReadFile("schemas/role.json")
 	require.Nil(t, err)
-	spec2, err := NewSpecFromJSON(data)
+	spec2, err := types.NewSpecFromJSON(data)
 	require.Nil(t, err)
 
 	hooks1 := myHooks()
@@ -102,48 +107,48 @@ func TestSmoke(t *testing.T) {
 	require.Len(t, docs, 3)
 }
 
-func myHooks() *Hooks {
-	preValidate := func(*Document) error {
+func myHooks() *types.Hooks {
+	preValidate := func(*types.Document) error {
 		fmt.Println("hello from preValidate")
 		return nil
 	}
-	postValidate := func(*Document) error {
+	postValidate := func(*types.Document) error {
 		fmt.Println("hello from postValidate")
 		return nil
 	}
-	preCreate := func(*Document) error {
+	preCreate := func(*types.Document) error {
 		fmt.Println("hello from preCreate")
 		return nil
 	}
-	preUpdate := func(*Document) error {
+	preUpdate := func(*types.Document) error {
 		fmt.Println("hello from preUpdate")
 		return nil
 	}
-	preSave := func(*Document) error {
+	preSave := func(*types.Document) error {
 		fmt.Println("hello from preSave")
 		return nil
 	}
-	preRemove := func(*Document) error {
+	preRemove := func(*types.Document) error {
 		fmt.Println("hello from preRemove")
 		return nil
 	}
-	postCreate := func(*Document) error {
+	postCreate := func(*types.Document) error {
 		fmt.Println("hello from postCreate")
 		return nil
 	}
-	postUpdate := func(*Document) error {
+	postUpdate := func(*types.Document) error {
 		fmt.Println("hello from postUpdate")
 		return nil
 	}
-	postSave := func(*Document) error {
+	postSave := func(*types.Document) error {
 		fmt.Println("hello from postSave")
 		return nil
 	}
-	postRemove := func(*Document) error {
+	postRemove := func(*types.Document) error {
 		fmt.Println("hello from postRemove")
 		return nil
 	}
-	return &Hooks{
+	return &types.Hooks{
 		PreValidate:  preValidate,
 		PostValidate: postValidate,
 		PreSave:      preSave,

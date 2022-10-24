@@ -1,6 +1,8 @@
-package mongodm
+package types
 
-import "go.mongodb.org/mongo-driver/bson"
+import (
+	"go.mongodb.org/mongo-driver/bson"
+)
 
 type Document struct {
 	attrs Attributes

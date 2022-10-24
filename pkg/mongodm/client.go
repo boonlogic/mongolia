@@ -1,34 +1,52 @@
 package mongodm
 
 import (
+	"fmt"
 	"gitlab.boonlogic.com/development/expert/mongolia/pkg/mongodm/options"
 	"go.mongodb.org/mongo-driver/mongo"
+	moptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type Client struct {
-	db *mongo.Database
+const (
+	defaultProtocol = "mongodb"
+	defaultPort     = uint16(27017)
+	defaultDatabase = "mongodm-local"
+)
+
+var db *mongo.Database
+
+func Connect(host string, opts *options.ConnectOptions) error {
+	err := opts.Validate()
+	if err != nil {
+		return err
+	}
+
+	uri := mongoURI(host, opts)
+	mongoOpts := moptions.Client().ApplyURI(uri)
+	mongoClient, err := mongo.Connect(ctx(), mongoOpts)
+	if err != nil {
+		return err
+	}
+
+	dbname := defaultDatabase
+	if opts.Database != nil {
+		dbname = *opts.Database
+	}
+	db = mongoClient.Database(dbname)
+
+	return nil
 }
 
-// Connect creates a new Client and then initializes it using the Connect method. This is equivalent to calling
-// NewClient followed by Client.Connect.
-//
-// The NewClient function does not do any I/O and returns an error if the given options are invalid.
-//
-// The Client.Ping method can be used to verify that the deployment is successfully connected and the
-// Client was correctly configured.
-func Connect() {}
-
-// NewClient creates a new client to connect to a deployment specified by the options.
-func NewClient(opts *options.ClientOptions) (*Client, error) {}
-
-func (c *Client) Connect() error {}
-
-// Ping sends a ping command to verify that the client can connect to the deployment.
-//
-// Do not use Ping in production. It reduces application resiliance because applications starting up
-// will error if the server is temporarily unavailable or is failing over (e.g. during autoscaling).
-func (c *Client) Ping() error {}
-
-func (c *Client) configure(opts *options.ClientOptions) error {
-	// Set default options
+func mongoURI(host string, opts *options.ConnectOptions) string {
+	var (
+		protocol = defaultProtocol
+		port     = defaultPort
+	)
+	if opts.Cloud != nil && *opts.Cloud {
+		protocol = "mongodb[srv]"
+	}
+	if opts.Port != nil {
+		port = *opts.Port
+	}
+	return fmt.Sprintf("%s://%s:%s", protocol, host, port)
 }

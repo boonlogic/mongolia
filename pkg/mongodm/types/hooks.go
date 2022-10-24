@@ -1,4 +1,4 @@
-package mongodm
+package types
 
 // Hooks accept a document and operate on it at certain points in the access cycle.
 type Hooks struct {

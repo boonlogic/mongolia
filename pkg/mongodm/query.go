@@ -1,5 +1,14 @@
 package mongodm
 
-import "go.mongodb.org/mongo-driver/bson"
+type Filter struct{}
 
-type Query bson.D
+type Update struct{}
+
+type CreateOneOptions struct{}
+type CreateManyOptions struct{}
+type UpdateOneOptions struct{}
+type UpdateManyOptions struct{}
+type FindOne struct{}
+type FindMany struct{}
+type RemoveOne struct{}
+type RemoveMany struct{}

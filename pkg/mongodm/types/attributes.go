@@ -1,4 +1,4 @@
-package mongodm
+package types
 
 import (
 	"encoding/json"

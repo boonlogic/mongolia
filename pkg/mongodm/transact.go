@@ -2,6 +2,7 @@ package mongodm
 
 import (
 	"context"
+	options2 "gitlab.boonlogic.com/development/expert/mongolia/pkg/mongodm/options"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readconcern"
@@ -10,7 +11,7 @@ import (
 
 // transact runs the passed-in function inside a Transaction.
 func transact(ctx context.Context, fn func(context.Context) error) error {
-	sess, err := db.Client().StartSession()
+	sess, err := options2.db.Client().StartSession()
 	if err != nil {
 		return err
 	}

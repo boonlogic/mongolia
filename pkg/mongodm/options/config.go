@@ -1,9 +1,11 @@
-package mongodm
+package options
 
 import (
 	"errors"
 	"os"
 )
+
+var config = new(Config)
 
 // Config struct contains extra configuration properties for the mgm package.
 type Config struct {
@@ -14,7 +16,10 @@ type Config struct {
 	DBName string
 }
 
-func NewConfigFromEnvironment() *Config {
+func NewConfigFromEnvironment() *ConnectOptions {
+}
+
+func newConfigFromEnv() *ConnectOptions {
 	config := defaultConfig()
 	uri := os.Getenv("AMBER_MONGO_URI")
 	if uri == "" {
@@ -27,11 +32,4 @@ func NewConfigFromEnvironment() *Config {
 	config.URI = uri
 	config.DBName = dbname
 	return config
-}
-
-func defaultConfig() *Config {
-	return &Config{
-		URI:    "mongodb://localhost:27017",
-		DBName: "mongodm-local",
-	}
 }

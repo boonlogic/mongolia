@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/santhosh-tekuri/jsonschema/v5"
+	"gitlab.boonlogic.com/development/expert/mongolia/pkg/mongodm/options"
+	"gitlab.boonlogic.com/development/expert/mongolia/pkg/mongodm/types"
 	"io/ioutil"
 	"net/url"
 )
@@ -11,7 +13,7 @@ import (
 // Singleton containing the validator functions for all schemas.
 var validators = make(map[string]func(any) error)
 
-func AddSchema(name string, spec SpecReader, hooks *Hooks) error {
+func AddSchema(name string, spec types.SpecReader, hooks *types.Hooks) error {
 	if _, ok := collections[name]; ok {
 		return errors.New(fmt.Sprintf("a schema named '%s' already exists", name))
 	}
@@ -27,9 +29,9 @@ func AddSchema(name string, spec SpecReader, hooks *Hooks) error {
 	// Initialize collection here.
 	// todo: add indexes
 	// todo: parse indexes of x-unique attribute
-	coll := db.Collection(name)
+	coll := options.db.Collection(name)
 
-	s := Schema{
+	s := Collection{
 		collection: coll,
 		validate:   validators[name],
 		hooks:      hooks,
@@ -39,7 +41,7 @@ func AddSchema(name string, spec SpecReader, hooks *Hooks) error {
 	return nil
 }
 
-func registerValidator(name string, spec SpecReader) error {
+func registerValidator(name string, spec types.SpecReader) error {
 	// Compile a validator function using the jsonschema library.
 	compiler := jsonschema.NewCompiler()
 	url := url.QueryEscape(name)
