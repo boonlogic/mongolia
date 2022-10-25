@@ -1,7 +1,9 @@
-mongodm
-=======
+mongolia
+========
+**MongoDM** - Mongo object document mapper for golang.
 
-Mongo object document mapper for golang.
+![IBEX](/Users/brad/Projects/boon/mongolia/mongolia/docs/ibex.png)
+
 
 Setup
 -----
