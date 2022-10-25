@@ -8,16 +8,16 @@ import (
 	moptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Configure configures the global ODM instance.
-func Configure(opts *options.ConfigureOptions) error {
+// Connect connects to the global ODM instance.
+func Connect(opts *options.ConnectOptions) error {
 	err := opts.Validate()
 	if err != nil {
 		return err
 	}
-	return configure(opts)
+	return connect(opts)
 }
 
-func configure(opts *options.ConfigureOptions) error {
+func connect(opts *options.ConnectOptions) error {
 	db, err := connectMongo(opts)
 	if err != nil {
 		return err
@@ -28,7 +28,7 @@ func configure(opts *options.ConfigureOptions) error {
 	return nil
 }
 
-func ephemeral(opts *options.ConfigureOptions) bool {
+func ephemeral(opts *options.ConnectOptions) bool {
 	var environment = defaults.ENVIRONMENT
 	if opts.Environment != nil {
 		environment = *opts.Environment
@@ -45,7 +45,7 @@ func ephemeral(opts *options.ConfigureOptions) bool {
 	return eph
 }
 
-func connectMongo(opts *options.ConfigureOptions) (*mongo.Database, error) {
+func connectMongo(opts *options.ConnectOptions) (*mongo.Database, error) {
 	uri := mongoURI(opts)
 	mopts := moptions.Client().ApplyURI(uri)
 	client, err := mongo.Connect(ctx(), mopts)
@@ -55,7 +55,7 @@ func connectMongo(opts *options.ConfigureOptions) (*mongo.Database, error) {
 	return client.Database(*opts.Database), nil
 }
 
-func mongoURI(opts *options.ConfigureOptions) string {
+func mongoURI(opts *options.ConnectOptions) string {
 	var (
 		cloud = defaults.ON_CLOUD
 		port  = defaults.MONGO_PORT
@@ -66,7 +66,7 @@ func mongoURI(opts *options.ConfigureOptions) string {
 	if opts.Port != nil {
 		port = *opts.Port
 	}
-	return fmt.Sprintf("%s://%s:%s", protocol(cloud), *opts.Host, port)
+	return fmt.Sprintf("%s://%s:%d", protocol(cloud), *opts.Host, port)
 }
 
 func protocol(cloud bool) string {
