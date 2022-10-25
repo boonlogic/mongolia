@@ -42,6 +42,7 @@ func TestSmoke(t *testing.T) {
 	//require.True(t, ok)
 	//_, ok = GetCollection("roles2")
 	//require.True(t, ok)
+
 	//
 	//// Usage
 	//type Role struct {

@@ -26,17 +26,18 @@ func AddSchema(name string, spec *Spec, hooks *Hooks) error {
 		return err
 	}
 
-	s := &Schema{
+	schema := &Schema{
 		name:     name,
 		validate: vfunc,
 		hooks:    hooks,
 	}
-	odm.schemas[name] = s
+	odm.schemas[name] = schema
 
-	_ = odm.db.Collection(name)
+	coll := odm.db.Collection(name)
 	// todo: convert spec into map[string]any
 	// todo: parse indexes from spec x-attrs
 	// todo: initialize collection indexes
+	odm.colls[name] = coll
 
 	return nil
 }
