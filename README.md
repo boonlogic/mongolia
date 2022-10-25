@@ -19,6 +19,9 @@ From top level of repository:
 * run `make generate` to generate all generated files
 * run `make tidy` to tidy go modules
 
+
+todo: update below as code evolves
+
 Environment
 -----------
 * `AMBER_MONGO_URI`: MongoDB [connection URI](https://www.mongodb.com/docs/manual/reference/connection-string/) for the mongo instance to use.
@@ -31,11 +34,3 @@ Organization
 ├── pkg                 <- Go package source
 └── cmd                 <- runnable server implementing the OpenAPI 3 spec
 ```
-
-Roadmap
--------
-
-
-Coding rules
-------------
-* Don't overuse positional arguments. If a function signature is getting too complicated use a configurator struct.
