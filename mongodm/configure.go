@@ -2,6 +2,7 @@ package mongodm
 
 import (
 	"fmt"
+	"gitlab.boonlogic.com/development/expert/mongolia/mongodm/defaults"
 	"gitlab.boonlogic.com/development/expert/mongolia/mongodm/options"
 	"go.mongodb.org/mongo-driver/mongo"
 	moptions "go.mongodb.org/mongo-driver/mongo/options"
@@ -21,17 +22,27 @@ func configure(opts *options.ConfigureOptions) error {
 	if err != nil {
 		return err
 	}
-
-	var ephemeral = defaultEphemeral
-	if opts.Ephemeral != nil && *opts.Ephemeral {
-		ephemeral = *opts.Ephemeral
-	}
-
 	odm.db = db
-	odm.colls = make(map[string]*mongo.Collection)
-	odm.ephemeral = ephemeral
-
+	odm.ephemeral = ephemeral(opts)
+	odm.schemas = make(map[string]*Schema)
 	return nil
+}
+
+func ephemeral(opts *options.ConfigureOptions) bool {
+	var environment = defaults.ENVIRONMENT
+	if opts.Environment != nil {
+		environment = *opts.Environment
+	}
+	var eph bool
+	switch environment {
+	case options.Development:
+		eph = true
+	case options.Testing:
+		eph = true
+	case options.Production:
+		eph = false
+	}
+	return eph
 }
 
 func connectMongo(opts *options.ConfigureOptions) (*mongo.Database, error) {
@@ -46,22 +57,22 @@ func connectMongo(opts *options.ConfigureOptions) (*mongo.Database, error) {
 
 func mongoURI(opts *options.ConfigureOptions) string {
 	var (
-		cloud = defaultCloud
-		port  = defaultPort
+		cloud = defaults.ON_CLOUD
+		port  = defaults.MONGO_PORT
 	)
-	if opts.Cloud != nil && *opts.Cloud {
-		cloud = *opts.Cloud
+	if opts.OnCloud != nil && *opts.OnCloud {
+		cloud = *opts.OnCloud
 	}
 	if opts.Port != nil {
 		port = *opts.Port
 	}
-	return fmt.Sprintf("%s://%s:%s", mongoProtocol(cloud), *opts.Host, port)
+	return fmt.Sprintf("%s://%s:%s", protocol(cloud), *opts.Host, port)
 }
 
-func mongoProtocol(cloud bool) string {
-	var protocol = "mongodb"
+func protocol(cloud bool) string {
+	var proto = "mongodb"
 	if cloud {
-		protocol += "[srv]"
+		proto += "[srv]"
 	}
-	return protocol
+	return proto
 }

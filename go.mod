@@ -3,6 +3,7 @@ module gitlab.boonlogic.com/development/expert/mongolia
 go 1.19
 
 require (
+	github.com/THREATINT/go-net v1.2.18
 	github.com/gin-gonic/gin v1.8.1
 	github.com/santhosh-tekuri/jsonschema/v5 v5.0.1
 	github.com/stretchr/testify v1.7.1
@@ -12,7 +13,6 @@ require (
 require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
-	github.com/THREATINT/go-net v1.2.18 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect

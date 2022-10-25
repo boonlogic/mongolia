@@ -2,9 +2,10 @@ package mongodm
 
 import (
 	"errors"
+	"log"
 )
 
-// Drop drops all ODM data. It will fail if the ODM is not ephemeral.
+// Drop drops all ODM data. It will fail if the ODM is in production.
 func Drop() {
 	if err := drop(); err != nil {
 		panic(err)
@@ -13,7 +14,8 @@ func Drop() {
 
 func drop() error {
 	if odm.ephemeral {
+		log.Printf("database '%s' dropped", odm.db.Name())
 		return odm.db.Drop(ctx())
 	}
-	return errors.New("not ephemeral, drop is not allowed")
+	return errors.New("drop is not allowed in production mode")
 }

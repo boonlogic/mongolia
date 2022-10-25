@@ -10,7 +10,7 @@ import (
 
 // transact runs the passed-in function inside a Transaction.
 func transact(ctx context.Context, fn func(context.Context) error) error {
-	sess, err := options2.db.Client().StartSession()
+	sess, err := odm.db.Client().StartSession()
 	if err != nil {
 		return err
 	}

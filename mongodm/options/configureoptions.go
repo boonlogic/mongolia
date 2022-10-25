@@ -16,11 +16,11 @@ const (
 // Each option is set through a setter function.
 // See each setter doc string for an explanation of the option.
 type ConfigureOptions struct {
-	Host      *string
-	Database  *string
-	Port      *uint16
-	Cloud     *bool
-	Ephemeral *bool
+	Environment *Environment
+	OnCloud     *bool
+	Host        *string
+	Port        *uint16
+	Database    *string
 }
 
 // Configure creates a new ConfigureOptions instance.
@@ -40,6 +40,9 @@ func (c *ConfigureOptions) validate() error {
 	if c.Database == nil {
 		return errors.New("database is required")
 	}
+	if c.Environment == nil {
+		return errors.New("environment is required")
+	}
 
 	switch {
 	case net.IsIPAddr(*c.Host):
@@ -55,17 +58,24 @@ func (c *ConfigureOptions) validate() error {
 	return nil
 }
 
+// SetEnvironment determines whether mongodm is running in a production, test, or development environment.
+// Environment is Production by default.
+func (c *ConfigureOptions) SetEnvironment(environment Environment) *ConfigureOptions {
+	c.Environment = &environment
+	return c
+}
+
+// SetCloud specifies whether the mongo instance is deployed in AtlasDB.
+// OnCloud is false by default.
+func (c *ConfigureOptions) SetCloud(cloud bool) *ConfigureOptions {
+	c.OnCloud = &cloud
+	return c
+}
+
 // SetHost specifies mongo instance to connect to.
 // Host is required. It must be valid IP address or hostname.
 func (c *ConfigureOptions) SetHost(host string) *ConfigureOptions {
 	c.Host = &host
-	return c
-}
-
-// SetDatabase specifies the name of the mongo database to use.
-// Database is required. It may contain only lower case letters and hyphens.
-func (c *ConfigureOptions) SetDatabase(database string) *ConfigureOptions {
-	c.Database = &database
 	return c
 }
 
@@ -76,17 +86,9 @@ func (c *ConfigureOptions) SetPort(port uint16) *ConfigureOptions {
 	return c
 }
 
-// SetCloud specifies whether the mongo instance is deployed in AtlasDB.
-// Cloud is false by default.
-func (c *ConfigureOptions) SetCloud(cloud bool) *ConfigureOptions {
-	c.Cloud = &cloud
-	return c
-}
-
-// SetEphemeral specifies whether this is a temporary ODM instance.
-// Ephemeral instances are safe to drop and useful to testing and development.
-// Ephemeral is false by default.
-func (c *ConfigureOptions) SetEphemeral(ephemeral bool) *ConfigureOptions {
-	c.Ephemeral = &ephemeral
+// SetDatabase specifies the name of the mongo database to use.
+// Database is required. It may contain only lower case letters and hyphens.
+func (c *ConfigureOptions) SetDatabase(database string) *ConfigureOptions {
+	c.Database = &database
 	return c
 }
