@@ -9,13 +9,13 @@ import (
 )
 
 func main() {
-	opts := options.Configure().
+	opts := options.Connect().
 		SetCloud(false).
 		SetHost("localhost").
 		SetDatabase("mongodm-local").
 		SetEnvironment("dev")
 
-	if err := mongodm.Configure(opts); err != nil {
+	if err := mongodm.Connect(opts); err != nil {
 		log.Fatalf("failed to configure: %s\n", err)
 	}
 

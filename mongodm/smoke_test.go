@@ -9,13 +9,13 @@ import (
 )
 
 func TestSmoke(t *testing.T) {
-	opts := options.Configure().
+	opts := options.Connect().
 		SetHost("localhost").
 		SetDatabase("mongodm-local").
 		SetEnvironment(options.Testing)
 	opts.Validate()
 
-	err := Configure(opts)
+	err := Connect(opts)
 	require.Nil(t, err)
 
 	Drop()
