@@ -42,13 +42,13 @@ func (s *Spec) validate() error {
 	return nil
 }
 
-// ValidatorFunc returns the validator function for this Spec.
+// GetValidator returns the validator function for this Spec.
 // The validator function determines whether an Attributes matches the definition.
-func (s *Spec) ValidatorFunc() (func(Attributes) error, error) {
-	return s.validatorFunc()
+func (s *Spec) GetValidator() (func(Attributes) error, error) {
+	return s.getValidator()
 }
 
-func (s *Spec) validatorFunc() (func(Attributes) error, error) {
+func (s *Spec) getValidator() (func(Attributes) error, error) {
 	compiler := jsonschema.NewCompiler()
 	if err := compiler.AddResource("nil", bytes.NewBuffer(s.definition)); err != nil {
 		return nil, err
