@@ -2,44 +2,25 @@ package mongodm
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Schema struct {
-	name     string
-	validate func(Attributes) error
-	hooks    *Hooks
+	name       string
+	definition []byte
+	validate   func(Attributes) error
+	hooks      *Hooks
 }
 
-func AddSchema(name string, spec *Spec, hooks *Hooks) error {
-	if _, ok := odm.schemas[name]; ok {
-		return errors.New(fmt.Sprintf("a schema named '%s' already exists", name))
-	}
-
-	if err := spec.Validate(); err != nil {
-		return err
-	}
-	vfunc, err := spec.ValidatorFunc()
+func NewSchema(spec *Spec, hooks *Hooks) (*Schema, error) {
+	vfunc, err := spec.GetValidator()
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	schema := &Schema{
-		name:     name,
+	s := &Schema{
 		validate: vfunc,
 		hooks:    hooks,
 	}
-	odm.schemas[name] = schema
-
-	coll := odm.db.Collection(name)
-	// todo: convert spec into map[string]any
-	// todo: parse indexes from spec x-attrs
-	// todo: initialize collection indexes
-	odm.colls[name] = coll
-
-	return nil
+	return s, nil
 }
 
 func (s *Schema) preValidate(doc *Document) error {
@@ -140,21 +121,7 @@ func (s *Schema) runWithHooks(ctx context.Context, operator func(ctx context.Con
 	return nil
 }
 
-func (s *Schema) createOne(attrs *Attributes) (*Document, error) {
-	doc := &Document{
-		id:    primitive.ObjectID{},
-		attrs: attrs,
-	}
-	fn := func(ctx context.Context) error {
-		if err := createOne(ctx, s.name, doc); err != nil {
-			return err
-		}
-		return nil
-	}
-	s.runWithHooks(ctx(), fn, doc)
-	return doc, nil
-}
-
+// todo: move these to collection.go?
 //func (s *Schema) createMany(attrs []Attributes) ([]Document, error) {
 //	for _, v := range attrs {
 //		if err := s.validate(v); err != nil {

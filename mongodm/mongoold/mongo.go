@@ -1,11 +1,11 @@
-package mongodm
+package mongoold
 
 import "context"
 
-var odm *ODM
+var db *DB
 
 func init() {
-	odm = new(ODM)
+	db = new(DB)
 }
 
 func ctx() context.Context {
