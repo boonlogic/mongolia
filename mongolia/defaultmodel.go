@@ -1,4 +1,4 @@
-package mongodm
+package mongolia
 
 // DefaultModel implements the Model interface.
 type DefaultModel struct {

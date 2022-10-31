@@ -1,9 +1,9 @@
-package v0
+package mongolia
 
 import (
 	"errors"
 	"fmt"
-	"gitlab.boonlogic.com/development/expert/mongolia/mongodm/v0/options"
+	"gitlab.boonlogic.com/development/expert/mongolia/mongolia/options"
 	"go.mongodb.org/mongo-driver/mongo"
 	moptions "go.mongodb.org/mongo-driver/mongo/options"
 )

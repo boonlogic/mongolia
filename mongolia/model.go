@@ -1,4 +1,4 @@
-package mongodm
+package mongolia
 
 type CollectionGetter interface {
 	Collection() *Collection

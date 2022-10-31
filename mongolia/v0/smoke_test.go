@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/stretchr/testify/require"
-	"gitlab.boonlogic.com/development/expert/mongolia/mongodm/v0/options"
+	"gitlab.boonlogic.com/development/expert/mongolia/mongolia/v0/options"
 	"io/ioutil"
 	"testing"
 )
@@ -17,7 +17,7 @@ type Role struct {
 func TestSmoke(t *testing.T) {
 	opts := options.ODM().
 		SetHost("localhost").
-		SetName("mongodm-local").
+		SetName("mongolia-local").
 		SetEphemeral(true)
 	opts.Validate()
 

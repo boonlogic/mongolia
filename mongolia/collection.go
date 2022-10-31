@@ -1,4 +1,4 @@
-package mongodm
+package mongolia
 
 import (
 	"context"

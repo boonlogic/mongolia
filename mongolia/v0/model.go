@@ -1,7 +1,7 @@
 package v0
 
 import (
-	options2 "gitlab.boonlogic.com/development/expert/mongolia/mongodm/v0/options"
+	options2 "gitlab.boonlogic.com/development/expert/mongolia/mongolia/v0/options"
 )
 
 type Model interface {

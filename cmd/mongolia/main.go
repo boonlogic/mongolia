@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"gitlab.boonlogic.com/development/expert/mongolia/mongodm/v0"
-	"gitlab.boonlogic.com/development/expert/mongolia/mongodm/v0/options"
+	"gitlab.boonlogic.com/development/expert/mongolia/mongolia/v0"
+	"gitlab.boonlogic.com/development/expert/mongolia/mongolia/v0/options"
 	"gitlab.boonlogic.com/development/expert/mongolia/restapi"
 	"log"
 )
@@ -12,7 +12,7 @@ func main() {
 	opts := options.ODM().
 		SetCloud(false).
 		SetHost("localhost").
-		SetName("mongodm-local").
+		SetName("mongolia-local").
 		SetEphemeral(false)
 
 	if err := v0.Connect(opts); err != nil {

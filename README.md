@@ -1,6 +1,6 @@
 mongolia
 ========
-**MongoDM** - Mongo object document mapper for golang.
+Mongo object document mapper for golang.
 
 ![IBEX](docs/ibex.png)
 
@@ -8,8 +8,8 @@ mongolia
 Setup
 -----
 From top level of `builder`:
-1. run `make mongodm-env` to installs environment dependencies
-2. run `make mongodm-pull` to pull the latest source
+1. run `make mongolia-env` to installs environment dependencies
+2. run `make mongolia-pull` to pull the latest source
 
 Usage
 -----
@@ -18,7 +18,6 @@ From top level of repository:
 * run `make run` to run server
 * run `make generate` to generate all generated files
 * run `make tidy` to tidy go modules
-
 
 todo: update below as code evolves
 

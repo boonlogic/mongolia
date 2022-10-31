@@ -1,7 +1,7 @@
-package mongodm
+package v0
 
 import (
-	"gitlab.boonlogic.com/development/expert/mongolia/mongodm/options"
+	"gitlab.boonlogic.com/development/expert/mongolia/mongolia/v0/options"
 )
 
 // Connect sets up a connection to the global ODM instance.

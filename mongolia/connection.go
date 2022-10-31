@@ -1,4 +1,4 @@
-package mongodm
+package mongolia
 
 import (
 	"context"
@@ -20,9 +20,6 @@ func Connect(uri string, dbname string) error {
 	return mgm.SetDefaultConfig(nil, dbname, options.Client().ApplyURI(uri))
 }
 
-func Coll(m *Model) *Collection {
-	if c, ok := odm.colls[m.Name()]; ok {
-		return c
-	}
-	return nil
+func Coll(cg *CollectionGetter) *Collection {
+	return cg.Collection()
 }
