@@ -21,5 +21,6 @@ func NewAlbum(name string, artist string) *Album {
 func TestSmoke(t *testing.T) {
 	mongodm.Connect("mongodb://localhost:27017", "mongodm")
 
-	//album := NewAlbum("kind of blue", "miles davis")
+	album := NewAlbum("kind of blue", "miles davis")
+	Coll()
 }

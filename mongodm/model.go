@@ -1,17 +1,17 @@
 package mongodm
 
-import (
-	"context"
-	"go.mongodb.org/mongo-driver/mongo"
-)
+type CollectionGetter interface {
+	Collection() *Collection
+}
+
+type CollectionNameGetter interface {
+	CollectionName() string
+}
 
 type Model interface {
-	Creating(context.Context) error
-	Created(context.Context) error
-	Updating(context.Context) error
-	Updated(ctx context.Context, result *mongo.UpdateResult) error
-	Saving(context.Context) error
-	Saved(context.Context) error
-	Deleting(context.Context) error
-	Deleted(ctx context.Context, result *mongo.DeleteResult) error
+	// PrepareID converts the id value into a mongo objectId.
+	PrepareID(id any) (any, error)
+
+	GetID() any
+	SetID(id any)
 }
