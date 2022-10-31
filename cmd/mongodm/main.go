@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"gitlab.boonlogic.com/development/expert/mongolia/mongodm"
-	"gitlab.boonlogic.com/development/expert/mongolia/mongodm/options"
+	"gitlab.boonlogic.com/development/expert/mongolia/mongodm/v0"
+	"gitlab.boonlogic.com/development/expert/mongolia/mongodm/v0/options"
 	"gitlab.boonlogic.com/development/expert/mongolia/restapi"
 	"log"
 )
@@ -15,7 +15,7 @@ func main() {
 		SetName("mongodm-local").
 		SetEphemeral(false)
 
-	if err := mongodm.Connect(opts); err != nil {
+	if err := v0.Connect(opts); err != nil {
 		log.Fatalf("failed to configure: %s\n", err)
 	}
 

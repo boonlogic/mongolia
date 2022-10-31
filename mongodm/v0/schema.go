@@ -107,6 +107,7 @@ func (s *Schema) postRemove(doc *Model) error {
 
 func (s *Schema) runWithHooks(ctx context.Context, operator func(ctx context.Context) error, model *Model) error {
 	if err := s.preValidate(model); err != nil {
+<<<<<<< HEAD
 <<<<<<< HEAD:mongodm/schema.go
 		return err
 	}
@@ -120,6 +121,21 @@ func (s *Schema) runWithHooks(ctx context.Context, operator func(ctx context.Con
 	//	return err
 	//}
 >>>>>>> development:mongodm/v0/schema.go
+=======
+<<<<<<<< HEAD:mongodm/v0/schema.go
+		return err
+	}
+	//if err := s.validator(map[string]any(model.Document)); err != nil {
+	//	return err
+	//}
+========
+		return err
+	}
+	if err := s.validator(map[string]any(model.Document)); err != nil {
+		return err
+	}
+>>>>>>>> development:mongodm/schema.go
+>>>>>>> development
 	if err := s.postValidate(model); err != nil {
 		return err
 	}

@@ -1,9 +1,17 @@
 package mongodm
 
-import "gitlab.boonlogic.com/development/expert/mongolia/mongodm/options"
+type CollectionGetter interface {
+	Collection() *Collection
+}
+
+type CollectionNameGetter interface {
+	CollectionName() string
+}
 
 type Model interface {
-	Save(opts *options.SaveOptions) error
-	Remove(opts *options.RemoveOptions) error
-	Populate(opts *options.PopulateOptions) error
+	// PrepareID converts the id value into a mongo objectId.
+	PrepareID(id any) (any, error)
+
+	GetID() any
+	SetID(id any)
 }
