@@ -1,10 +1,10 @@
-package mongodm
+package v0
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/stretchr/testify/require"
-	"gitlab.boonlogic.com/development/expert/mongolia/mongodm/options"
+	"gitlab.boonlogic.com/development/expert/mongolia/mongodm/v0/options"
 	"io/ioutil"
 	"testing"
 )

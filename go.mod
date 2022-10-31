@@ -3,6 +3,7 @@ module gitlab.boonlogic.com/development/expert/mongolia
 go 1.19
 
 require (
+	github.com/Kamva/mgm v1.2.3
 	github.com/THREATINT/go-net v1.2.18
 	github.com/gin-gonic/gin v1.8.1
 	github.com/santhosh-tekuri/jsonschema/v5 v5.0.1
@@ -20,6 +21,7 @@ require (
 	github.com/go-playground/validator/v10 v10.10.0 // indirect
 	github.com/goccy/go-json v0.9.7 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect

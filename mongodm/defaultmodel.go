@@ -1,4 +1,4 @@
-package mgm
+package mongodm
 
 import (
 	"context"

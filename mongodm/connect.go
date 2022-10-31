@@ -1,22 +1,23 @@
 package mongodm
 
 import (
-	"gitlab.boonlogic.com/development/expert/mongolia/mongodm/options"
+	"github.com/Kamva/mgm"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Connect sets up a connection to the global ODM instance.
-func Connect(opts *options.ODMOptions) error {
-	err := opts.Validate()
-	if err != nil {
-		return err
-	}
-	return connect(opts)
+var odm *ODM
+
+func init() {
+	odm = new(ODM)
 }
 
-func connect(opts *options.ODMOptions) error {
-	var err error
-	if odm, err = NewODM(opts); err != nil {
-		return err
+func Connect(uri string, dbname string) error {
+	return mgm.SetDefaultConfig(nil, dbname, options.Client().ApplyURI(uri))
+}
+
+func Coll(name string) *Collection {
+	if c, ok := odm.colls[name]; ok {
+		return c
 	}
 	return nil
 }

@@ -1,4 +1,4 @@
-package mongodm
+package v0
 
 type Hooks struct {
 	// PreValidate is triggered before a model is validated against the schema.

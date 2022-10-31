@@ -1,9 +1,17 @@
 package mongodm
 
-import "gitlab.boonlogic.com/development/expert/mongolia/mongodm/options"
+import (
+	"context"
+	"go.mongodb.org/mongo-driver/mongo"
+)
 
 type Model interface {
-	Save(opts *options.SaveOptions) error
-	Remove(opts *options.RemoveOptions) error
-	Populate(opts *options.PopulateOptions) error
+	Creating(context.Context) error
+	Created(context.Context) error
+	Updating(context.Context) error
+	Updated(ctx context.Context, result *mongo.UpdateResult) error
+	Saving(context.Context) error
+	Saved(context.Context) error
+	Deleting(context.Context) error
+	Deleted(ctx context.Context, result *mongo.DeleteResult) error
 }

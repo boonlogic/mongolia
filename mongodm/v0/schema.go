@@ -1,4 +1,4 @@
-package mongodm
+package v0
 
 import (
 	"context"
@@ -109,9 +109,9 @@ func (s *Schema) runWithHooks(ctx context.Context, operator func(ctx context.Con
 	if err := s.preValidate(model); err != nil {
 		return err
 	}
-	if err := s.validator(map[string]any(model.Document)); err != nil {
-		return err
-	}
+	//if err := s.validator(map[string]any(model.Document)); err != nil {
+	//	return err
+	//}
 	if err := s.postValidate(model); err != nil {
 		return err
 	}
