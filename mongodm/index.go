@@ -1,8 +1,11 @@
 package mongodm
 
-type Index []IndexField
+type Index struct {
+	Name string
+	Keys []IndexKey
+}
 
-type IndexField struct {
-	Key        string
+type IndexKey struct {
+	Field      string
 	Increasing bool
 }

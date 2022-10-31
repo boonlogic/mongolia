@@ -14,8 +14,8 @@ func Drop() {
 
 func drop() error {
 	if odm.ephemeral {
-		log.Printf("mongoold '%s' dropped", odm.db.Name())
+		log.Printf("database '%s' dropped", odm.db.Name())
 		return odm.db.Drop(ctx())
 	}
-	return errors.New("drop is not allowed in production mode")
+	return errors.New("drop not allowed, instance is ephemeral")
 }

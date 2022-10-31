@@ -2,134 +2,146 @@ package mongodm
 
 import (
 	"context"
+	"encoding/json"
 )
 
 type Schema struct {
-	name       string
-	definition []byte
-	validate   func(Attributes) error
+	definition map[string]any
+	validator  func(map[string]any) error
 	hooks      *Hooks
 }
 
+// NewSchema creates a new Schema based on the given Spec and Hooks.
 func NewSchema(spec *Spec, hooks *Hooks) (*Schema, error) {
+	return newSchema(spec, hooks)
+}
+
+func newSchema(spec *Spec, hooks *Hooks) (*Schema, error) {
 	vfunc, err := spec.GetValidator()
 	if err != nil {
 		return nil, err
 	}
+
+	var def map[string]any
+	if err = json.Unmarshal(spec.definition, &def); err != nil {
+		return nil, err
+	}
+
 	s := &Schema{
-		validate: vfunc,
-		hooks:    hooks,
+		definition: def,
+		validator:  vfunc,
+		hooks:      hooks,
 	}
 	return s, nil
 }
 
-func (s *Schema) preValidate(doc *Document) error {
+func (s *Schema) preValidate(doc *Model) error {
 	if s.hooks.PreValidate == nil {
 		return nil
 	}
 	return s.hooks.PreValidate(doc)
 }
 
-func (s *Schema) postValidate(doc *Document) error {
+func (s *Schema) postValidate(doc *Model) error {
 	if s.hooks.PostValidate == nil {
 		return nil
 	}
 	return s.hooks.PostValidate(doc)
 }
 
-func (s *Schema) preCreate(doc *Document) error {
+func (s *Schema) preCreate(doc *Model) error {
 	if s.hooks.PreCreate == nil {
 		return nil
 	}
 	return s.hooks.PreCreate(doc)
 }
 
-func (s *Schema) preUpdate(doc *Document) error {
+func (s *Schema) preUpdate(doc *Model) error {
 	if s.hooks.PreUpdate == nil {
 		return nil
 	}
 	return s.hooks.PreUpdate(doc)
 }
 
-func (s *Schema) preSave(doc *Document) error {
+func (s *Schema) preSave(doc *Model) error {
 	if s.hooks.PreSave == nil {
 		return nil
 	}
 	return s.hooks.PreSave(doc)
 }
 
-func (s *Schema) preRemove(doc *Document) error {
+func (s *Schema) preRemove(doc *Model) error {
 	if s.hooks.PreRemove == nil {
 		return nil
 	}
 	return s.hooks.PreRemove(doc)
 }
 
-func (s *Schema) postCreate(doc *Document) error {
+func (s *Schema) postCreate(doc *Model) error {
 	if s.hooks.PostCreate == nil {
 		return nil
 	}
 	return s.hooks.PostCreate(doc)
 }
 
-func (s *Schema) postUpdate(doc *Document) error {
+func (s *Schema) postUpdate(doc *Model) error {
 	if s.hooks.PostUpdate == nil {
 		return nil
 	}
 	return s.hooks.PostUpdate(doc)
 }
 
-func (s *Schema) postSave(doc *Document) error {
+func (s *Schema) postSave(doc *Model) error {
 	if s.hooks.PostSave == nil {
 		return nil
 	}
 	return s.hooks.PostSave(doc)
 }
 
-func (s *Schema) postRemove(doc *Document) error {
+func (s *Schema) postRemove(doc *Model) error {
 	if s.hooks.PostRemove == nil {
 		return nil
 	}
 	return s.hooks.PostRemove(doc)
 }
 
-func (s *Schema) runWithHooks(ctx context.Context, operator func(ctx context.Context) error, doc *Document) error {
-	if err := s.preValidate(doc); err != nil {
+func (s *Schema) runWithHooks(ctx context.Context, operator func(ctx context.Context) error, model *Model) error {
+	if err := s.preValidate(model); err != nil {
 		return err
 	}
-	if err := s.validate(*doc.attrs); err != nil {
+	if err := s.validator(map[string]any(model.Document)); err != nil {
 		return err
 	}
-	if err := s.postValidate(doc); err != nil {
+	if err := s.postValidate(model); err != nil {
 		return err
 	}
-	if err := s.preCreate(doc); err != nil {
+	if err := s.preCreate(model); err != nil {
 		return err
 	}
-	if err := s.preSave(doc); err != nil {
+	if err := s.preSave(model); err != nil {
 		return err
 	}
 	if err := operator(ctx); err != nil {
 		return err
 	}
-	if err := s.postCreate(doc); err != nil {
+	if err := s.postCreate(model); err != nil {
 		return err
 	}
-	if err := s.postSave(doc); err != nil {
+	if err := s.postSave(model); err != nil {
 		return err
 	}
 	return nil
 }
 
 // todo: move these to collection.go?
-//func (s *Schema) createMany(attrs []Attributes) ([]Document, error) {
+//func (s *Schema) createMany(attrs []Attributes) ([]Model, error) {
 //	for _, v := range attrs {
-//		if err := s.validate(v); err != nil {
+//		if err := s.validator(v); err != nil {
 //			return nil, err
 //		}
 //	}
 //
-//	var docs []Document
+//	var docs []Model
 //
 //	// todo: use for loop and CreateOne
 //	fn := func(ctx context.Context) error {
@@ -165,36 +177,36 @@ func (s *Schema) runWithHooks(ctx context.Context, operator func(ctx context.Con
 //	return docs, nil
 //}
 //
-//func FindOne(query Query) (*Document, error) {
+//func FindOne(query Query) (*Model, error) {
 //	filter := bson.M{}
-//	var doc *Document
+//	var doc *Model
 //	if err := odm.db.Collection(s.name).FindOne(ctx(), filter).Decode(&doc); err != nil {
 //		return nil, err
 //	}
 //	return doc, nil
 //}
 //
-//func FindMany(query Query) ([]Document, error) {
+//func FindMany(query Query) ([]Model, error) {
 //	filter := bson.M{}
 //	cur, err := odm.db.Collection(s.name).Find(ctx(), filter)
 //	if err != nil {
 //		return nil, err
 //	}
-//	var docs []Document
+//	var docs []Model
 //	if err := cur.All(ctx(), &docs); err != nil {
 //		return nil, err
 //	}
 //	return docs, nil
 //}
 //
-//func UpdateOne(query Query, attr Attributes) (*Document, error) {
+//func UpdateOne(query Query, attr Attributes) (*Model, error) {
 //	filter := bson.M{}
 //	update := bson.M{
 //		"$unset": bson.M{"unset_me": 1},
 //	}
 //	opts := options.FindOneAndUpdate().SetUpsert(false).SetReturnDocument(options.After)
 //
-//	var doc *Document
+//	var doc *Model
 //	err := odm.db.Collection(s.name).FindOneAndUpdate(ctx(), filter, update, opts).Decode(&doc)
 //	if err != nil {
 //		return nil, err
@@ -202,8 +214,8 @@ func (s *Schema) runWithHooks(ctx context.Context, operator func(ctx context.Con
 //	return doc, nil
 //}
 //
-//func UpdateMany(query Query, attr Attributes) ([]Document, error) {
-//	var docs []Document
+//func UpdateMany(query Query, attr Attributes) ([]Model, error) {
+//	var docs []Model
 //
 //	fn := func(ctx context.Context) error {
 //		filter := bson.M{}
@@ -239,17 +251,17 @@ func (s *Schema) runWithHooks(ctx context.Context, operator func(ctx context.Con
 //	return docs, nil
 //}
 //
-//func RemoveOne(query Query) (*Document, error) {
+//func RemoveOne(query Query) (*Model, error) {
 //	filter := bson.M{}
-//	var doc *Document
+//	var doc *Model
 //	if err := odm.db.Collection(s.name).FindOneAndDelete(ctx(), filter).Decode(&doc); err != nil {
 //		return nil, err
 //	}
 //	return doc, nil
 //}
 //
-//func RemoveMany(query Query) ([]Document, error) {
-//	var docs []Document
+//func RemoveMany(query Query) ([]Model, error) {
+//	var docs []Model
 //
 //	fn := func(ctx context.Context) error {
 //		filter := bson.M{}

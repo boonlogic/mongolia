@@ -4,39 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gitlab.boonlogic.com/development/expert/mongolia/mongodm/mongoold"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Collection is a handle to a mongoold.Collection.
+// Collection wraps client.Collection while enforcing the Schema.
 type Collection struct {
 	schema *Schema
-	coll   *mongoold.Collection
-}
-
-func NewCollection(name string, schema *Schema) (*Collection, error) {
-	c := &Collection{
-		name:   name,
-		schema: schema,
-	}
-
-	mcoll := odm.db.Collection(name)
-	mongoold.MakeCollection(name, schema)
-	// todo: take spec definition from schema
-	// todo: convert spec into map[string]any (or something parsable)
-	// todo: parse expected indexes from spec x-attrs
-	// todo: list existing indexes
-	// todo: create any expected indexes that are missing
-
-	return c, nil
-}
-
-func (c *Collection) getIndexes() []Index {
-	return nil
-}
-
-func (c *Collection) addIndex(index Index) {
+	coll   *mongo.Collection
 }
 
 func GetCollection(name string) (*Collection, error) {
@@ -47,26 +21,47 @@ func GetCollection(name string) (*Collection, error) {
 	return coll, nil
 }
 
-func (c *Collection) createOne(attrs *Attributes) (*Document, error) {
-	doc := &Document{
-		id:    primitive.ObjectID{},
-		attrs: attrs,
+func newCollection(name string, schema *Schema) (*Collection, error) {
+	coll := odm.db.Collection(name)
+
+	// todo: initialize indexes
+	listIndexes(ctx(), coll)
+
+	c := &Collection{
+		schema: schema,
+		coll:   coll,
 	}
-	fn := func(ctx context.Context) error {
-		if err := c.insertOne(ctx, doc); err != nil {
-			return err
-		}
-		return nil
-	}
-	c.schema.runWithHooks(ctx(), fn, doc)
-	return doc, nil
+	return c, nil
 }
 
-func (c *Collection) insertOne(ctx context.Context, doc *Document) error {
-	id, err := mongoold.InsertOne(c, ctx, bson.M(*doc.attrs))
-	if err != nil {
-		return err
-	}
-	doc.id = id
+func initIndexes() error {
+	// todo: parse expected indexes from spec x-attrs
+	// todo: list existing indexes
+	// todo: create any expected indexes that are missing
 	return nil
+}
+
+// CreateOne instantiates a new object in the database.
+// Model is a handle to the newly created object.
+func (c *Collection) CreateOne(m) (*Model, error) {
+	return c.createOne(doc)
+}
+
+func (c *Collection) createOne(document Document) (*Model, error) {
+	model := &Model{
+		Document: document,
+		coll:     c,
+	}
+	op := func(ctx context.Context) error {
+		id, err := insertOne(ctx, c.coll, model.Document)
+		if err != nil {
+			return err
+		}
+		model.Document["id"] = id
+		return nil
+	}
+	if err := c.schema.runWithHooks(ctx(), op, model); err != nil {
+		return nil, err
+	}
+	return model, nil
 }

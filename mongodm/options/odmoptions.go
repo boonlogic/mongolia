@@ -54,7 +54,7 @@ func (o *ODMOptions) validate() error {
 	}
 
 	if *o.Ephemeral && strings.HasSuffix(*o.Name, "-tmp") {
-		return errors.New(fmt.Sprintf(""))
+		return errors.New(fmt.Sprintf("instance may only be ephemeral if name ends with '-tmp' (name is '%s')", *o.Name))
 	}
 
 	return nil
@@ -67,29 +67,44 @@ func (o *ODMOptions) SetName(name string) *ODMOptions {
 	return o
 }
 
-// SetHost specifies mongoold instance to connect to.
+// SetHost specifies mongo instance to connect to.
 // Host must be valid IP address or hostname.
 func (o *ODMOptions) SetHost(host string) *ODMOptions {
 	o.Host = &host
 	return o
 }
 
-// SetPort specifies the port of the mongoold instance to connect to.
+// SetPort specifies the port of the mongo instance to connect to.
 func (o *ODMOptions) SetPort(port uint16) *ODMOptions {
 	o.Port = &port
 	return o
 }
 
-// SetCloud specifies whether the mongoold instance is deployed in AtlasDB.
+// SetCloud specifies whether the mongo instance is deployed in AtlasDB.
 func (o *ODMOptions) SetCloud(cloud bool) *ODMOptions {
 	o.Cloud = &cloud
 	return o
 }
 
 // SetEphemeral determines whether the ODM will permit the Drop operation.
-// Ephemeral may only be true if Name has the suffix "-tmp".
+// Ephemeral may only be true if Name has the suffix '-tmp'.
 // Ephemeral should be used only for testing and development.
 func (o *ODMOptions) SetEphemeral(ephemeral bool) *ODMOptions {
 	o.Ephemeral = &ephemeral
 	return o
+}
+
+// MongoURI returns a mongo connection string corresponding to the ODMOptions.
+func (o *ODMOptions) MongoURI() string {
+	var (
+		protocol = "mongodb"
+		port     = uint16(27017)
+	)
+	if o.Cloud != nil && *o.Cloud {
+		protocol += "[srv]"
+	}
+	if o.Port != nil {
+		port = *o.Port
+	}
+	return fmt.Sprintf("%s://%s:%d", protocol, *o.Host, port)
 }

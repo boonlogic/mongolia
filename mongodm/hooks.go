@@ -1,33 +1,33 @@
 package mongodm
 
 type Hooks struct {
-	// PreValidate is triggered before a document is validated against the schema.
-	PreValidate func(*Document) error
+	// PreValidate is triggered before a model is validated against the schema.
+	PreValidate func(*Model) error
 
-	// PostValidate is triggered after a document is validated against the schema.
-	PostValidate func(*Document) error
+	// PostValidate is triggered after a model is validated against the schema.
+	PostValidate func(*Model) error
 
-	// PreCreate is triggered after PostValidate and before inserting a document.
-	PreCreate func(*Document) error
+	// PreCreate is triggered after PostValidate, before inserting a document.
+	PreCreate func(*Model) error
 
-	// PreUpdate is triggered after PostValidate and before updating a document.
-	PreUpdate func(*Document) error
+	// PreUpdate is triggered after PostValidate, before updating a document.
+	PreUpdate func(*Model) error
 
-	// PreSave is triggered after PreCreate or PreUpdate and before inserting or updating a document.
-	PreSave func(*Document) error
+	// PreSave is triggered after one of PreCreate or PreUpdate, before the document is inserted/updated.
+	PreSave func(*Model) error
 
 	// PreRemove is triggered before removing a document.
-	PreRemove func(*Document) error
+	PreRemove func(*Model) error
 
 	// PostCreate is triggered after inserting a document.
-	PostCreate func(*Document) error
+	PostCreate func(*Model) error
 
 	// PostUpdate is triggered after updating a document.
-	PostUpdate func(*Document) error
+	PostUpdate func(*Model) error
 
 	// PostSave is triggered after PostCreate and PostUpdate, after inserting or updating a document.
-	PostSave func(*Document) error
+	PostSave func(*Model) error
 
 	// PostRemove is triggered after removing a document.
-	PostRemove func(*Document) error
+	PostRemove func(*Model) error
 }

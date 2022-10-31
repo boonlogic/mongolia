@@ -1,6 +1,7 @@
 package mongodm
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/stretchr/testify/require"
 	"gitlab.boonlogic.com/development/expert/mongolia/mongodm/options"
@@ -8,11 +9,16 @@ import (
 	"testing"
 )
 
+type Role struct {
+	Name        string   `json:"name"  bson:"name"`
+	Permissions []string `json:"permissions" bson:"permissions"`
+}
+
 func TestSmoke(t *testing.T) {
 	opts := options.ODM().
 		SetHost("localhost").
 		SetName("mongodm-local").
-		SetEphemeral(false)
+		SetEphemeral(true)
 	opts.Validate()
 
 	err := Connect(opts)
@@ -24,8 +30,8 @@ func TestSmoke(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	spec1 := NewSpec(buf)
-	err = spec1.Validate()
+	spec := NewSpec(buf)
+	err = spec.Validate()
 	require.Nil(t, err)
 
 	spec2, err := NewSpecFromFile("schemas/role.json")
@@ -33,44 +39,42 @@ func TestSmoke(t *testing.T) {
 	err = spec2.Validate()
 	require.Nil(t, err)
 
-	err = AddSchema("roles", spec1, myHooks())
-	require.Nil(t, err)
-	err = AddSchema("roles2", spec2, myHooks())
+	err = AddSchema("roles", spec, myHooks())
 	require.Nil(t, err)
 
-	//roles, ok := GetCollection("roles")
-	//require.True(t, ok)
-	//_, ok = GetCollection("roles2")
-	//require.True(t, ok)
+	coll, err := GetCollection("roles")
+	require.Nil(t, err)
 
-	//
-	//// Usage
-	//type Role struct {
-	//	ID          primitive.ObjectID `json:"id" bson:"id"`
-	//	Name        string             `json:"name" bson:"name"`
-	//	Permissions []string           `json:"permissions" bson:"permissions"`
-	//}
-	//r := &Role{
-	//	Name:        "admin",
-	//	Permissions: []string{"+:*:*"},
-	//}
-	//
-	//// Create a role document from the Role struct.
-	//doc, err := roles.CreateOne(r)
-	//require.Nil(t, err)
-	//require.NotNil(t, doc)
-	//
+	role := &Role{
+		Name:        "admin",
+		Permissions: []string{"+:*:*"},
+	}
+
+	var doc map[string]any
+	buf, err = json.Marshal(role)
+	if err != nil {
+		panic(err)
+	}
+	if err = json.Unmarshal(buf, &doc); err != nil {
+		panic(err)
+	}
+	model, err := coll.CreateOne(doc)
+	require.Nil(t, err)
+	require.NotNil(t, model)
+
+	fmt.Printf("model: %+v\n", model)
+
 	//// Creation should fail if username does not match pattern regex.
 	//rbad := *r
 	//rbad.Name = "b@dusern@me"
-	//doc, err = roles.CreateOne(&rbad)
-	//require.Nil(t, doc)
+	//model, err = roles.CreateOne(&rbad)
+	//require.Nil(t, model)
 	//require.NotNil(t, err)
 	//
 	//// Find a previously inserted document.
-	//doc, err = roles.FindOne(nil)
+	//model, err = roles.FindOne(nil)
 	//require.Nil(t, err)
-	//require.NotNil(t, doc)
+	//require.NotNil(t, model)
 	//
 	//// Create several documents.
 	//obj1 := *r
@@ -90,9 +94,9 @@ func TestSmoke(t *testing.T) {
 	//require.Len(t, docs, 4)
 	//
 	//// Update a document.
-	//doc, err = roles.UpdateOne(nil)
+	//model, err = roles.UpdateOne(nil)
 	//require.Nil(t, err)
-	//require.NotNil(t, doc)
+	//require.NotNil(t, model)
 	//
 	//// Update many documents.
 	//docs, err = roles.UpdateMany(nil)
@@ -100,9 +104,9 @@ func TestSmoke(t *testing.T) {
 	//require.Len(t, docs, 4)
 	//
 	//// Delete one document.
-	//doc, err = roles.RemoveOne(nil)
+	//model, err = roles.RemoveOne(nil)
 	//require.Nil(t, err)
-	//require.NotNil(t, doc)
+	//require.NotNil(t, model)
 	//
 	//// Delete many documents.
 	//docs, err = roles.RemoveMany(nil)
@@ -111,43 +115,43 @@ func TestSmoke(t *testing.T) {
 }
 
 func myHooks() *Hooks {
-	preValidate := func(*Document) error {
+	preValidate := func(*Model) error {
 		fmt.Println("hello from preValidate")
 		return nil
 	}
-	postValidate := func(*Document) error {
+	postValidate := func(*Model) error {
 		fmt.Println("hello from postValidate")
 		return nil
 	}
-	preCreate := func(*Document) error {
+	preCreate := func(*Model) error {
 		fmt.Println("hello from preCreate")
 		return nil
 	}
-	preUpdate := func(*Document) error {
+	preUpdate := func(*Model) error {
 		fmt.Println("hello from preUpdate")
 		return nil
 	}
-	preSave := func(*Document) error {
+	preSave := func(*Model) error {
 		fmt.Println("hello from preSave")
 		return nil
 	}
-	preRemove := func(*Document) error {
+	preRemove := func(*Model) error {
 		fmt.Println("hello from preRemove")
 		return nil
 	}
-	postCreate := func(*Document) error {
+	postCreate := func(*Model) error {
 		fmt.Println("hello from postCreate")
 		return nil
 	}
-	postUpdate := func(*Document) error {
+	postUpdate := func(*Model) error {
 		fmt.Println("hello from postUpdate")
 		return nil
 	}
-	postSave := func(*Document) error {
+	postSave := func(*Model) error {
 		fmt.Println("hello from postSave")
 		return nil
 	}
-	postRemove := func(*Document) error {
+	postRemove := func(*Model) error {
 		fmt.Println("hello from postRemove")
 		return nil
 	}
