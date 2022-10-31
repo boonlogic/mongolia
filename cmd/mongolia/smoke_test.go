@@ -22,5 +22,4 @@ func TestSmoke(t *testing.T) {
 	mongolia.Connect("mongodb://localhost:27017", "mongolia")
 
 	album := NewAlbum("kind of blue", "miles davis")
-	Coll()
 }
