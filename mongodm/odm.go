@@ -5,33 +5,39 @@ import (
 	"fmt"
 	"gitlab.boonlogic.com/development/expert/mongolia/mongodm/options"
 	"go.mongodb.org/mongo-driver/mongo"
+	moptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// ODM is the object document mapper.
 type ODM struct {
-	mongo     *mongo.Client
+	name      string
+	db        *mongo.Database
 	colls     map[string]*Collection
 	ephemeral bool
 }
 
 func NewODM(opts *options.ODMOptions) (*ODM, error) {
-	dbopts :=
-	options.DBOptions().
-		SetName(opts.Name).
-		SetURI(opts.Host).
-		db, err := mongo.Connect(ctx(), dbopts)
+	client, err := connectMongo(opts)
 	if err != nil {
 		return nil, err
 	}
 	inst := &ODM{
-		db:        db,
+		name:      *opts.Name,
+		db:        client.Database(*opts.Name),
 		colls:     make(map[string]*Collection),
-		ephemeral: ephemeral(opts),
+		ephemeral: *opts.Ephemeral,
 	}
 	return inst, nil
 }
 
-func ephemeral(opts *options.ODMOptions) bool {
-	return eph
+func connectMongo(opts *options.ODMOptions) (*mongo.Client, error) {
+	uri := opts.MongoURI()
+	mopts := moptions.Client().ApplyURI(uri)
+	client, err := mongo.Connect(ctx(), mopts)
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
 }
 
 // AddSchema adds a schema to the ODM based on the given spec and hooks.
@@ -49,11 +55,11 @@ func (o *ODM) addSchema(name string, spec *Spec, hooks *Hooks) error {
 	if err := spec.Validate(); err != nil {
 		return err
 	}
-	schema, err := NewSchema(spec, hooks)
+	schema, err := newSchema(spec, hooks)
 	if err != nil {
 		return err
 	}
-	coll, err := NewCollection(name, schema)
+	coll, err := newCollection(name, schema)
 	if err != nil {
 		return err
 	}

@@ -42,13 +42,12 @@ func (s *Spec) validate() error {
 	return nil
 }
 
-// GetValidator returns the validator function for this Spec.
-// The validator function determines whether an Attributes matches the definition.
-func (s *Spec) GetValidator() (func(Attributes) error, error) {
+// GetValidator returns a function that validates a map[string]any against this Spec.
+func (s *Spec) GetValidator() (func(map[string]any) error, error) {
 	return s.getValidator()
 }
 
-func (s *Spec) getValidator() (func(Attributes) error, error) {
+func (s *Spec) getValidator() (func(map[string]any) error, error) {
 	compiler := jsonschema.NewCompiler()
 	if err := compiler.AddResource("nil", bytes.NewBuffer(s.definition)); err != nil {
 		return nil, err
@@ -57,24 +56,12 @@ func (s *Spec) getValidator() (func(Attributes) error, error) {
 	if err != nil {
 		return nil, err
 	}
-	vfunc := requireMapStringAny(schema.Validate)
-	return decorateValidator(vfunc), nil
+	return needMap(schema.Validate), nil
 }
 
-// Decorate a general-purpose validator so it accepts an Attributes.
-func decorateValidator(fn func(map[string]any) error) func(Attributes) error {
-	return func(v Attributes) error {
-		if err := fn(v); err != nil {
-			return err
-		}
-		return nil
-	}
-}
-
-// The signature for jsonschema.Schema.Validate allows it to accept
-// any type, but it panics when the JSON value is not a map[string]any.
-// This decorates the function so it explicitly requires a map[string]any.
-func requireMapStringAny(fn func(any) error) func(map[string]any) error {
+// The signature for jsonschema.Schema's Validate accepts any type, but it panics when the JSON value is not a
+// map[string]any. Decorate the function so it requires a map[string]any.
+func needMap(fn func(any) error) func(map[string]any) error {
 	return func(v map[string]any) error {
 		if err := fn(v); err != nil {
 			return err
