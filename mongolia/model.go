@@ -9,9 +9,21 @@ type CollectionNameGetter interface {
 }
 
 type Model interface {
-	// PrepareID converts the id value into a mongo objectId.
 	PrepareID(id any) (any, error)
-
+	IsNew() bool
 	GetID() any
 	SetID(id any)
+}
+
+type DefaultModel struct {
+	IDField    `bson:",inline"`
+	DateFields `bson:",inline"`
+}
+
+func (model *DefaultModel) PreCreate() error {
+	return model.DateFields.PreCreate()
+}
+
+func (model *DefaultModel) PreSave() error {
+	return model.DateFields.PreSave()
 }
