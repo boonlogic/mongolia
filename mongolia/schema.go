@@ -1,8 +1,15 @@
 package mongolia
 
-func AddSchema(definition []byte, m Model) error {
-	// todo
-	return nil
+import (
+	"github.com/santhosh-tekuri/jsonschema/v5"
+)
+
+type Schema struct {
+	jsonschema.Schema
+}
+
+func (s *Schema) Validate(doc map[string]any) error {
+	return s.Validate(doc)
 }
 
 //type Schema struct {

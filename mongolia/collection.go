@@ -7,7 +7,6 @@ import (
 
 type Collection struct {
 	*mgm.Collection
-	indexes []Index
 }
 
 func (c *Collection) FindByID(id any, model Model) error {
