@@ -39,12 +39,12 @@ func (f *IDField) SetID(id any) {
 	f.ID = id.(primitive.ObjectID)
 }
 
-func (f *DateFields) PreCreate() error {
+func (f *DateFields) Creating() error {
 	f.CreatedAt = time.Now().UTC()
 	return nil
 }
 
-func (f *DateFields) PreSave() error {
+func (f *DateFields) Saving() error {
 	f.UpdatedAt = time.Now().UTC()
 	return nil
 }

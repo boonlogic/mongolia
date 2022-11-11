@@ -23,7 +23,7 @@ import (
 //	}
 //}
 
-func setup() *mongo.Collection {
+func setup() {
 	uri := "mongodb://localhost:27017"
 	copts := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(context.Background(), copts)
@@ -51,29 +51,23 @@ func setup() *mongo.Collection {
 		Options: options.Index().SetUnique(true),
 	}
 	coll.Indexes().CreateOne(context.Background(), model, options.CreateIndexes())
-	return coll
 }
 
 func TestSmoke(t *testing.T) {
 	setup()
 
-	uri := "mongodb://localhost:27017"
-	dbname := "mongolia-local"
-	timeout := 10 * time.Second
+	cfg := mongolia.NewConfig().
+		SetURI("mongodb://localhost:27017").
+		SetDBName("mongolia-local").
+		SetTimeout(10 * time.Second)
 
-	err := mongolia.Connect(uri, dbname, timeout)
+	err := mongolia.Connect(cfg)
 	require.Nil(t, err)
 
 	err = mongolia.AddSchema("tenant", "mongolia/tenant.json")
 	require.Nil(t, err)
 
-	//coll, err := mongolia.GetCollection("tenant")
-	//require.NotNil(t, coll)
-	//require.Nil(t, err)
-
-	//coll, err = mongolia.GetCollection("missing coll")
-	//require.Nil(t, coll)
-	//require.NotNil(t, err)
-
-	//_ = NewTenant("dev-tenant")
+	coll, err := mongolia.GetCollection("tenant")
+	require.NotNil(t, coll)
+	require.Nil(t, err)
 }

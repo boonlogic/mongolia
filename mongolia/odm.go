@@ -7,34 +7,60 @@ import (
 )
 
 type ODM struct {
+	config   *Config
 	compiler *Compiler
-	schemas  map[string]Schema
 	colls    map[string]Collection
 }
 
 func NewODM() *ODM {
 	return &ODM{
 		compiler: NewCompiler(),
-		schemas:  make(map[string]Schema),
 		colls:    make(map[string]Collection),
 	}
 }
 
+func (o *ODM) Connect(config *Config) error {
+	if config == nil {
+		config = NewConfig()
+	} else {
+		config = DefaultConfig().Merge(config)
+	}
+	if err := connect(config); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (o *ODM) AddSchema(name string, path string) error {
-	// If AddResource succeeds, the spec is valid jsonschema.
 	def, err := ioutil.ReadFile(path)
 	if err != nil {
-		panic(err)
-	}
-	if err := odm.compiler.AddResource(path, def); err != nil {
 		return err
+	}
+	schema, err := odm.compileSchema(path, def)
+	if err != nil {
+		return err
+	}
+	coll, err := connectCollection(name, schema)
+	if err != nil {
+		return nil
+	}
+	odm.colls[name] = *coll
+	return nil
+}
+
+func (o *ODM) compileSchema(path string, def []byte) (*Schema, error) {
+	r := &Resource{
+		URI:        path,
+		Definition: def,
+	}
+	if err := odm.compiler.AddResource(path, r); err != nil {
+		return nil, err
 	}
 	schema, err := odm.compiler.Compile(path)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	odm.schemas[name] = *schema
-	return nil
+	return schema, nil
 }
 
 func (o *ODM) GetCollection(name string) (*Collection, error) {

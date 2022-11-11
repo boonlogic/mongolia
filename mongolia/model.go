@@ -1,18 +1,17 @@
 package mongolia
 
+import "github.com/Kamva/mgm"
+
 type CollectionGetter interface {
-	Collection() *Collection
+	mgm.CollectionGetter
 }
 
 type CollectionNameGetter interface {
-	CollectionName() string
+	mgm.CollectionNameGetter
 }
 
 type Model interface {
-	PrepareID(id any) (any, error)
-	IsNew() bool
-	GetID() any
-	SetID(id any)
+	mgm.Model
 }
 
 type DefaultModel struct {
@@ -20,10 +19,12 @@ type DefaultModel struct {
 	DateFields `bson:",inline"`
 }
 
-func (model *DefaultModel) PreCreate() error {
-	return model.DateFields.PreCreate()
+// Creating function calls the Creating hooks of DefaultModel's inner fields.
+func (model *DefaultModel) Creating() error {
+	return model.DateFields.Creating()
 }
 
-func (model *DefaultModel) PreSave() error {
-	return model.DateFields.PreSave()
+// Saving function calls the Saving hooks of DefaultModel's inner fields.
+func (model *DefaultModel) Saving() error {
+	return model.DateFields.Saving()
 }

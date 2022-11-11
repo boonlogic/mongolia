@@ -103,6 +103,23 @@ func toIndex(doc bson.D) Index {
 	return idx
 }
 
+func indexName(keys []IndexKey) string {
+	name := ""
+	for i, k := range keys {
+		var updown int
+		if k.Ascending {
+			updown = 1
+		} else {
+			updown = -1
+		}
+		name += fmt.Sprintf("%s_%d", name, updown)
+		if i < len(keys)-1 {
+			name += "_"
+		}
+	}
+	return name
+}
+
 func listIndexes(coll *mongo.Collection) ([]Index, error) {
 	curs, err := coll.Indexes().List(ctx())
 	if err != nil {
@@ -163,5 +180,10 @@ func addIndex(coll *mongo.Collection, index Index) error {
 	if _, err := coll.Indexes().CreateOne(ctx(), idxm, options.CreateIndexes()); err != nil {
 		return err
 	}
+	return nil
+}
+
+func dropIndex(coll *mongo.Collection, name string) error {
+	// todo: implement
 	return nil
 }
