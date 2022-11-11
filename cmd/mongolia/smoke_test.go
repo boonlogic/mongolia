@@ -64,7 +64,7 @@ func TestSmoke(t *testing.T) {
 	err := mongolia.Connect(cfg)
 	require.Nil(t, err)
 
-	err = mongolia.AddSchema("tenant", "mongolia/tenant.json")
+	err = mongolia.AddSchema("tenant", "test/tenant.json")
 	require.Nil(t, err)
 
 	coll, err := mongolia.GetCollection("tenant")

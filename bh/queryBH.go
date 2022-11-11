@@ -1,4 +1,4 @@
-package mongolia
+package bh
 
 import (
 	"go.mongodb.org/mongo-driver/bson"

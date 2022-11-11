@@ -2,21 +2,28 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"gitlab.boonlogic.com/development/expert/mongolia/mongolia"
 	"gitlab.boonlogic.com/development/expert/mongolia/restapi"
-	"gitlab.boonlogic.com/development/expert/mongolia/v0"
-	"gitlab.boonlogic.com/development/expert/mongolia/v0/options"
 	"log"
+	"os"
+	"strconv"
+	"time"
 )
 
 func main() {
-	opts := options.ODM().
-		SetCloud(false).
-		SetHost("localhost").
-		SetName("mongolia-local").
-		SetEphemeral(false)
+	n, err := strconv.Atoi(os.Getenv("MONGOLIA_TIMEOUT"))
+	if err != nil {
+		log.Fatalf("could not convert MONGOLIA_TIMEOUT to int: '%s'\n", os.Getenv("MONGOLIA_TIMEOUT"))
+	}
+	timeout := time.Duration(n) * time.Second
 
-	if err := v0.Connect(opts); err != nil {
-		log.Fatalf("failed to configure: %s\n", err)
+	cfg := mongolia.DefaultConfig().
+		SetURI(os.Getenv("MONGOLIA_URI")).
+		SetDBName(os.Getenv("MONGOLIA_DB_NAME")).
+		SetTimeout(timeout)
+
+	if err := mongolia.Connect(cfg); err != nil {
+		log.Fatalf("failed to connect: %s\n", err)
 	}
 
 	router := gin.Default()
