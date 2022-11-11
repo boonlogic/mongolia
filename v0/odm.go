@@ -3,7 +3,7 @@ package v0
 import (
 	"errors"
 	"fmt"
-	"gitlab.boonlogic.com/development/expert/mongolia/mongolia/v0/options"
+	"gitlab.boonlogic.com/development/expert/mongolia/v0/options"
 	"go.mongodb.org/mongo-driver/mongo"
 	moptions "go.mongodb.org/mongo-driver/mongo/options"
 )

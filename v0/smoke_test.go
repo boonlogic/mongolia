@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/stretchr/testify/require"
-	"gitlab.boonlogic.com/development/expert/mongolia/mongolia/v0/options"
+	"gitlab.boonlogic.com/development/expert/mongolia/v0/options"
 	"io/ioutil"
 	"testing"
 )

@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"gitlab.boonlogic.com/development/expert/mongolia/mongolia/v0"
-	"gitlab.boonlogic.com/development/expert/mongolia/mongolia/v0/options"
 	"gitlab.boonlogic.com/development/expert/mongolia/restapi"
+	"gitlab.boonlogic.com/development/expert/mongolia/v0"
+	"gitlab.boonlogic.com/development/expert/mongolia/v0/options"
 	"log"
 )
 
