@@ -14,9 +14,41 @@ type Index struct {
 	Unique bool
 }
 
+func (idx *Index) Equals(other Index) bool {
+	if idx.Name != other.Name {
+		return false
+	}
+	for i, key := range idx.Keys {
+		if !key.Equals(other.Keys[i]) {
+			return false
+		}
+	}
+	if idx.Unique != other.Unique {
+		return false
+	}
+	return true
+}
+
 type IndexKey struct {
-	Field     string
-	Ascending bool
+	Field string
+	Type  IndexType
+}
+
+type IndexType string
+
+const (
+	Ascending  = IndexType("asc")
+	Descending = IndexType("desc")
+	Geospatial = IndexType("2dsphere")
+	Text       = IndexType("text")
+	Hashed     = IndexType("hashed")
+)
+
+func (k *IndexKey) Equals(other IndexKey) bool {
+	if k.Field != other.Field {
+		return false
+	}
+	return true
 }
 
 func isIndex(doc bson.D) bool {
@@ -40,13 +72,26 @@ func isIndex(doc bson.D) bool {
 		if elem.Key == "" {
 			return false
 		}
-		v, ok := elem.Value.(int32)
-		if !ok {
-			return false
-		}
-		switch v {
-		case 1:
-		case -1:
+
+		switch v := elem.Value.(type) {
+		case int32:
+			switch v {
+			case 1:
+			case -1:
+			default:
+				return false
+			}
+		case string:
+			t := IndexType(v)
+			switch t {
+			case Ascending:
+			case Descending:
+			case Geospatial:
+			case Text:
+			case Hashed:
+			default:
+				return false
+			}
 		default:
 			return false
 		}
@@ -65,17 +110,21 @@ func toIndex(doc bson.D) Index {
 	keydocs := doc.Map()["key"].(bson.D)
 	keys := make([]IndexKey, len(keydocs))
 	for i, elem := range keydocs {
-		var asc bool
-		switch elem.Value.(int32) {
-		case 1:
-			asc = true
-		case -1:
-			asc = false
+		var idxtype IndexType
+		switch v := elem.Value.(type) {
+		case int32:
+			switch v {
+			case 1:
+				idxtype = Ascending
+			case -1:
+				idxtype = Descending
+			}
+		case string:
+			idxtype = IndexType(v)
 		}
-
 		keys[i] = IndexKey{
-			Field:     elem.Key,
-			Ascending: asc,
+			Field: elem.Key,
+			Type:  idxtype,
 		}
 	}
 
@@ -95,7 +144,7 @@ func toIndex(doc bson.D) Index {
 	// is always unique, but the attribute "unique" is not returned in its index document.
 	if idx.Name == "_id_" && len(idx.Keys) == 1 {
 		key := idx.Keys[0]
-		if key.Field == "_id" && key.Ascending {
+		if key.Field == "_id" && key.Type == Ascending {
 			idx.Unique = true
 		}
 	}
@@ -106,13 +155,17 @@ func toIndex(doc bson.D) Index {
 func indexName(keys []IndexKey) string {
 	name := ""
 	for i, k := range keys {
-		var updown int
-		if k.Ascending {
-			updown = 1
-		} else {
-			updown = -1
+		// mongo uses 1 for ascending and -1 for descending in index names
+		var t string
+		switch k.Type {
+		case Ascending:
+			t = "1"
+		case Descending:
+			t = "-1"
+		default:
+			t = string(k.Type)
 		}
-		name += fmt.Sprintf("%s_%d", name, updown)
+		name += fmt.Sprintf("%s_%d", k.Field, t)
 		if i < len(keys)-1 {
 			name += "_"
 		}
@@ -156,15 +209,9 @@ func addIndex(coll *mongo.Collection, index Index) error {
 
 	keys := make(bson.D, len(idxs))
 	for i, k := range index.Keys {
-		var dir int
-		if k.Ascending {
-			dir = 1
-		} else {
-			dir = -1
-		}
 		key := bson.E{
 			Key:   k.Field,
-			Value: dir,
+			Value: string(k.Type),
 		}
 		keys[i] = key
 	}

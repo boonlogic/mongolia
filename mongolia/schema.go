@@ -22,13 +22,13 @@ func (s *Schema) Validate(model Model) error {
 	return s.Schema.Validate(m)
 }
 
-func (s *Schema) RequiredIndexes() []Index {
-	idxs := make([]Index, len(s.uniqueFields))
-	for i, f := range s.uniqueFields {
+func requiredIndexes(schema *Schema) []Index {
+	idxs := make([]Index, len(schema.uniqueFields))
+	for i, f := range schema.uniqueFields {
 		keys := []IndexKey{
 			{
-				Field:     f,
-				Ascending: true,
+				Field: f,
+				Type:  Ascending,
 			},
 		}
 		idx := Index{

@@ -1,13 +1,8 @@
 package mongolia
 
-import (
-	"time"
-)
-
 type Config struct {
-	URI     *string
-	DBName  *string
-	Timeout *time.Duration
+	URI    *string
+	DBName *string
 }
 
 func NewConfig() *Config {
@@ -17,11 +12,9 @@ func NewConfig() *Config {
 func DefaultConfig() *Config {
 	u := defaultURI
 	n := defaultDBName
-	t := defaultTimeout
 	return &Config{
-		URI:     &u,
-		DBName:  &n,
-		Timeout: &t,
+		URI:    &u,
+		DBName: &n,
 	}
 }
 
@@ -35,11 +28,6 @@ func (c *Config) SetDBName(dbname string) *Config {
 	return c
 }
 
-func (c *Config) SetTimeout(timeout time.Duration) *Config {
-	c.Timeout = &timeout
-	return c
-}
-
 func (c *Config) Merge(updates *Config) *Config {
 	if updates == nil {
 		return c
@@ -49,9 +37,6 @@ func (c *Config) Merge(updates *Config) *Config {
 	}
 	if updates.DBName != nil {
 		c.DBName = updates.DBName
-	}
-	if updates.Timeout != nil {
-		c.Timeout = updates.Timeout
 	}
 	return c
 }

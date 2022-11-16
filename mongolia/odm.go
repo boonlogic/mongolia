@@ -3,10 +3,12 @@ package mongolia
 import (
 	"errors"
 	"fmt"
+	"go.mongodb.org/mongo-driver/mongo"
 	"io/ioutil"
 )
 
 type ODM struct {
+	db       *mongo.Database
 	config   *Config
 	compiler *Compiler
 	colls    map[string]Collection

@@ -8,7 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"testing"
-	"time"
 )
 
 //type Tenant struct {
@@ -58,8 +57,7 @@ func TestSmoke(t *testing.T) {
 
 	cfg := mongolia.NewConfig().
 		SetURI("mongodb://localhost:27017").
-		SetDBName("mongolia-local").
-		SetTimeout(10 * time.Second)
+		SetDBName("mongolia-local")
 
 	err := mongolia.Connect(cfg)
 	require.Nil(t, err)

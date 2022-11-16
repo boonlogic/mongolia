@@ -90,5 +90,9 @@ func compileSchema(c *Compiler, r *Resource) (*Schema, error) {
 
 func uniqueFields(definition []byte) ([]string, error) {
 	// todo: implement
-	return []string{}, nil
+	//return []string{}, nil
+
+	fields := make([]string, 0)
+	fields = append(fields, "field4")
+	return fields, nil
 }
