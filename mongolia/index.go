@@ -29,6 +29,17 @@ func (idx *Index) Equals(other Index) bool {
 	return true
 }
 
+func (idx *Index) EqualsExceptName(other Index) bool {
+	for i, key := range idx.Keys {
+		if !key.Equals(other.Keys[i]) {
+			return false
+		}
+	}
+	if idx.Unique != other.Unique {
+		return false
+	}
+}
+
 type IndexKey struct {
 	Field string
 	Type  IndexType
@@ -43,6 +54,18 @@ const (
 	Text       = IndexType("text")
 	Hashed     = IndexType("hashed")
 )
+
+func (t IndexType) ToMongo() any {
+	// mongo uses 1 for ascending and -1 for descending in index names
+	switch t {
+	case Ascending:
+		return 1
+	case Descending:
+		return -1
+	default:
+		return string(t)
+	}
+}
 
 func (k *IndexKey) Equals(other IndexKey) bool {
 	if k.Field != other.Field {
@@ -155,17 +178,8 @@ func toIndex(doc bson.D) Index {
 func indexName(keys []IndexKey) string {
 	name := ""
 	for i, k := range keys {
-		// mongo uses 1 for ascending and -1 for descending in index names
-		var t string
-		switch k.Type {
-		case Ascending:
-			t = "1"
-		case Descending:
-			t = "-1"
-		default:
-			t = string(k.Type)
-		}
-		name += fmt.Sprintf("%s_%d", k.Field, t)
+		idxtype := k.Type.ToMongo()
+		name += fmt.Sprintf("%s_%v", k.Field, idxtype)
 		if i < len(keys)-1 {
 			name += "_"
 		}
@@ -192,26 +206,12 @@ func listIndexes(coll *mongo.Collection) ([]Index, error) {
 	return idxs, nil
 }
 
-func getIndex(coll *mongo.Collection, name string) (*Index, error) {
-	return nil, errors.New(fmt.Sprintf("no index named \"%s\"", name))
-}
-
 func addIndex(coll *mongo.Collection, index Index) error {
-	idxs, err := listIndexes(coll)
-	if err != nil {
-		return err
-	}
-	for _, idx := range idxs {
-		if index.Name == idx.Name {
-			return errors.New(fmt.Sprintf("an index named \"%s\" already exists"))
-		}
-	}
-
-	keys := make(bson.D, len(idxs))
+	keys := make(bson.D, len(index.Keys))
 	for i, k := range index.Keys {
 		key := bson.E{
 			Key:   k.Field,
-			Value: string(k.Type),
+			Value: k.Type.ToMongo(),
 		}
 		keys[i] = key
 	}
@@ -231,6 +231,8 @@ func addIndex(coll *mongo.Collection, index Index) error {
 }
 
 func dropIndex(coll *mongo.Collection, name string) error {
-	// todo: implement
+	if _, err := coll.Indexes().DropOne(ctx(), name); err != nil {
+		return err
+	}
 	return nil
 }
