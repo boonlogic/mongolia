@@ -6,8 +6,9 @@ import (
 )
 
 type Collection struct {
-	schema *Schema
-	coll   *mgm.Collection
+	schema  *Schema
+	coll    *mgm.Collection
+	indexes map[string]Index
 }
 
 func (c *Collection) FindByID(id any, model Model) error {

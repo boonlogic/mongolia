@@ -3,12 +3,10 @@ package mongolia
 import (
 	"errors"
 	"fmt"
-	"go.mongodb.org/mongo-driver/mongo"
 	"io/ioutil"
 )
 
 type ODM struct {
-	db       *mongo.Database
 	config   *Config
 	compiler *Compiler
 	colls    map[string]Collection
@@ -50,6 +48,14 @@ func (o *ODM) AddSchema(name string, path string) error {
 	return nil
 }
 
+func (o *ODM) GetCollection(name string) (*Collection, error) {
+	coll, ok := o.colls[name]
+	if !ok {
+		return nil, errors.New(fmt.Sprintf("no collection named \"%s\"", name))
+	}
+	return &coll, nil
+}
+
 func (o *ODM) compileSchema(path string, def []byte) (*Schema, error) {
 	r := &Resource{
 		URI:        path,
@@ -63,12 +69,4 @@ func (o *ODM) compileSchema(path string, def []byte) (*Schema, error) {
 		return nil, err
 	}
 	return schema, nil
-}
-
-func (o *ODM) GetCollection(name string) (*Collection, error) {
-	coll, ok := o.colls[name]
-	if !ok {
-		return nil, errors.New(fmt.Sprintf("no collection named \"%s\"", name))
-	}
-	return &coll, nil
 }

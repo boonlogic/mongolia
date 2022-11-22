@@ -1,8 +1,6 @@
 package mongolia
 
 import (
-	"errors"
-	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
@@ -24,11 +22,13 @@ func (f *IDField) PrepareID(id any) (any, error) {
 	switch v := id.(type) {
 	case string:
 		return primitive.ObjectIDFromHex(v)
-	case primitive.ObjectID:
-		return v, nil
 	default:
-		return nil, errors.New(fmt.Sprintf("id must be a string or objectId (got type %T)", v))
+		return v, nil // assume it is an objectId
 	}
+}
+
+func (f *IDField) IsNew() bool {
+	return f.GetID() == primitive.ObjectID{}
 }
 
 func (f *IDField) GetID() any {

@@ -10,10 +10,7 @@ func validateIndexes(have []Index, want []Index) error {
 	for _, wanted := range want {
 		for _, idx := range have {
 			if idx.Name == wanted.Name && !idx.Equals(wanted) {
-				return errors.New(fmt.Sprintf("index '%s' exists but does not matched wanted index", idx.Name))
-			}
-			if idx.EqualsExceptName(wanted) && idx.Name != wanted.Name {
-				return errors.New(fmt.Sprintf("index '%s' matches wanted index '%s' but has a different name"))
+				return errors.New(fmt.Sprintf("an index named '%s' exists, but does not match the desired specifications", idx.Name))
 			}
 		}
 	}
@@ -53,17 +50,19 @@ func addIndexSet(coll *mongo.Collection, set []Index) error {
 	return nil
 }
 
-func prepareIndexes(coll *mongo.Collection, schema *Schema) error {
+func prepareIndexes(coll *mongo.Collection, schema *Schema) ([]Index, error) {
 	required := requiredIndexes(schema)
 	existing, err := listIndexes(coll)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err = validateIndexes(existing, required); err != nil {
-		return err
+		return nil, err
 	}
-	if err = addIndexSet(coll, missingIndexes(existing, required)); err != nil {
-		return err
+	missing := missingIndexes(existing, required)
+	if err = addIndexSet(coll, missing); err != nil {
+		return nil, err
 	}
-	return nil
+	all := append(existing, missing...)
+	return all, nil
 }

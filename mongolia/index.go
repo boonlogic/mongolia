@@ -29,17 +29,6 @@ func (idx *Index) Equals(other Index) bool {
 	return true
 }
 
-func (idx *Index) EqualsExceptName(other Index) bool {
-	for i, key := range idx.Keys {
-		if !key.Equals(other.Keys[i]) {
-			return false
-		}
-	}
-	if idx.Unique != other.Unique {
-		return false
-	}
-}
-
 type IndexKey struct {
 	Field string
 	Type  IndexType
