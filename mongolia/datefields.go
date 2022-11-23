@@ -10,13 +10,6 @@ type IDField struct {
 	ID primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 }
 
-// DateFields contains the `created_at` and `updated_at`
-// fields that autofill when inserting or updating a model.
-type DateFields struct {
-	CreatedAt time.Time `json:"createdAt" bson:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt" bson:"updatedAt"`
-}
-
 // PrepareID prepares the id value to be used for mongo lookups.
 func (f *IDField) PrepareID(id any) (any, error) {
 	switch v := id.(type) {
@@ -37,6 +30,20 @@ func (f *IDField) GetID() any {
 
 func (f *IDField) SetID(id any) {
 	f.ID = id.(primitive.ObjectID)
+}
+
+func (f *IDField) Equals(other *IDField) bool {
+	if f == nil || other == nil {
+		return false
+	}
+	return *f == *other
+}
+
+// DateFields contains the `created_at` and `updated_at`
+// fields that autofill when inserting or updating a model.
+type DateFields struct {
+	CreatedAt time.Time `json:"createdAt" bson:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt" bson:"updatedAt"`
 }
 
 func (f *DateFields) Creating() error {

@@ -1,7 +1,11 @@
 {
-  "$id": "https://gitlab.com/boonlogic/development/expert-api/api/amberv2/schemas/tenant.json",
+  "$id": "https://gitlab.com/boonlogic/development/mongolia/mongolia/test/tenant.json",
   "type": "object",
   "required": [
+    "tenantId",
+    "name"
+  ],
+  "x-unique": [
     "tenantId",
     "name"
   ],
@@ -15,6 +19,5 @@
       "pattern": "^[a-zA-Z0-9-_]*$",
       "maxLength": 64
     }
-  },
-  "additionalProperties": false
+  }
 }
