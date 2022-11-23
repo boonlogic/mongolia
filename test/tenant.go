@@ -16,10 +16,10 @@ func NewTenant(id string, name string) *Tenant {
 }
 
 func (t *Tenant) Equals(other *Tenant) bool {
-	if t.TenantID != other.TenantID {
+	if *t.TenantID != *other.TenantID {
 		return false
 	}
-	if t.Name != other.Name {
+	if *t.Name != *other.Name {
 		return false
 	}
 	return true

@@ -12,6 +12,7 @@ type CollectionNameGetter interface {
 
 type Model interface {
 	mgm.Model
+	Equaler
 }
 
 type DefaultModel struct {
@@ -27,4 +28,13 @@ func (model *DefaultModel) Creating() error {
 // Saving function calls the Saving hooks of DefaultModel's inner fields.
 func (model *DefaultModel) Saving() error {
 	return model.DateFields.Saving()
+}
+
+// One DefaultModel equals another if they point to the same database record.
+// The DateFields may differ as these are ODM-managed and not application-specific.
+func (model *DefaultModel) Equals(other *DefaultModel) bool {
+	if !model.IDField.Equals(other.IDField) {
+		equal = true
+	}
+	return true
 }

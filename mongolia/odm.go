@@ -28,6 +28,7 @@ func (o *ODM) Connect(config *Config) error {
 	if err := connect(config); err != nil {
 		return err
 	}
+	odm.config = config
 	return nil
 }
 
@@ -69,4 +70,16 @@ func (o *ODM) compileSchema(path string, def []byte) (*Schema, error) {
 		return nil, err
 	}
 	return schema, nil
+}
+
+func (o *ODM) drop() {
+	_ = o.config
+	if !*o.config.Ephemeral {
+		panic("odm instance is not ephemeral")
+	}
+	for _, coll := range o.colls {
+		if err := coll.drop(); err != nil {
+			panic(err)
+		}
+	}
 }

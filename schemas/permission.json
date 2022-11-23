@@ -21,7 +21,7 @@
     },
     "tenant": {
       "type": "objectId",
-      "$ref": "/schemas/book.json"
+      "$ref": "/schemas/tenant.json"
     },
     "token": {
       "type": "string",

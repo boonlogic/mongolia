@@ -17,7 +17,7 @@
     },
     "tenant": {
       "type": "objectId",
-      "$ref": "/schemas/book.json"
+      "$ref": "/schemas/tenant.json"
     },
     "license": {
       "type": "objectId",

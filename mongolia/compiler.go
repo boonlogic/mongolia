@@ -14,7 +14,7 @@ type Compiler struct {
 
 type Resource struct {
 	URI        string
-	Definition []byte
+	Definition Definition
 }
 
 func (r *Resource) Validate() error {
@@ -77,22 +77,9 @@ func compileSchema(c *Compiler, r *Resource) (*Schema, error) {
 	if err != nil {
 		return nil, err
 	}
-	unique, err := uniqueFields(r.Definition)
-	if err != nil {
-		return nil, err
-	}
 	s := &Schema{
 		Schema:       *schema,
-		uniqueFields: unique,
+		uniqueFields: r.Definition.UniqueFields(),
 	}
 	return s, nil
-}
-
-func uniqueFields(definition []byte) ([]string, error) {
-	// todo: implement
-	//return []string{}, nil
-
-	fields := make([]string, 0)
-	fields = append(fields, "field4")
-	return fields, nil
 }

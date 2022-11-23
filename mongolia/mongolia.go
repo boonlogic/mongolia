@@ -6,9 +6,10 @@ import (
 )
 
 const (
-	defaultURI     = "mongodb://localhost:27017"
-	defaultDBName  = "mongolia-local"
-	defaultTimeout = 10 * time.Second
+	defaultURI       = "mongodb://localhost:27017"
+	defaultDBName    = "mongolia-local"
+	defaultTimeout   = 10 * time.Second
+	defaultEphemeral = false
 )
 
 var odm *ODM

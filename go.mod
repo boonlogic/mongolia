@@ -5,7 +5,6 @@ go 1.19
 require (
 	github.com/Kamva/mgm v1.2.3
 	github.com/gin-gonic/gin v1.8.1
-	github.com/google/uuid v1.3.0
 	github.com/santhosh-tekuri/jsonschema/v5 v5.0.1
 	github.com/stretchr/testify v1.7.1
 	go.mongodb.org/mongo-driver v1.10.3

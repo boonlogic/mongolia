@@ -70,3 +70,7 @@ func (c *Collection) Delete(model Model) error {
 	}
 	return nil
 }
+
+func (c *Collection) drop() error {
+	return c.coll.Drop(ctx())
+}

@@ -40,7 +40,7 @@
         "properties": {
           "tenant": {
             "type": "objectId",
-            "$ref": "/schemas/book.json"
+            "$ref": "/schemas/tenant.json"
           },
           "role": {
             "type": "objectId",

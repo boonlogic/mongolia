@@ -1,26 +1,28 @@
-package mongolia
+package test
 
 import (
 	"fmt"
 	"github.com/stretchr/testify/require"
+	"gitlab.boonlogic.com/development/expert/mongolia/mongolia"
 	"os"
 	"testing"
 	"time"
 )
 
 func Test(t *testing.T) {
-	cfg := NewConfig().
+	cfg := mongolia.NewConfig().
 		SetURI("mongodb://localhost:27017").
 		SetDBName("mongolia-local-tmp").
-		SetTimeout(10 * time.Second)
+		SetTimeout(10 * time.Second).
+		SetEphemeral(true)
 
-	err := Connect(cfg)
+	err := mongolia.Connect(cfg)
 	require.Nil(t, err)
 
-	drop()
+	mongolia.Drop()
 
 	// try to get a nonexistent collection
-	coll, err := GetCollection("nonexistent")
+	coll, err := mongolia.GetCollection("nonexistent")
 	require.NotNil(t, err)
 	require.Nil(t, coll)
 
@@ -29,28 +31,28 @@ func Test(t *testing.T) {
 	if path == "" {
 		path = "test/tenant.json"
 	}
-	err = AddSchema("tenant", "test/tenant.json")
+	err = mongolia.AddSchema("tenant", "test/tenant.json")
 	require.Nil(t, err)
 
 	// get the corresponding collection
-	coll, err = GetCollection("tenant")
+	coll, err = mongolia.GetCollection("tenant")
 	require.Nil(t, err)
 	require.NotNil(t, coll)
 
 	// try to find a nonexistent tenant
-	var result *Tenant
+	var result *mongolia.Tenant
 	q := map[string]any{
-		"tenantId": newoid(),
+		"tenantId": mongolia.NewOID(),
 	}
 	coll.First(q, result, nil)
 	require.Nil(t, err)
 	require.Nil(t, result)
 
 	// make a new tenant in memory
-	var tenant *Tenant
-	tenantId := newoid()
+	var tenant *mongolia.Tenant
+	tenantId := mongolia.NewOID()
 	name := "luke"
-	tenant = NewTenant(tenantId, name)
+	tenant = mongolia.NewTenant(tenantId, name)
 
 	// create that tenant in the database
 	err = coll.Create(tenant, nil)
@@ -63,7 +65,7 @@ func Test(t *testing.T) {
 	require.Equal(t, name, *tenant.Name)
 
 	// find the created tenant
-	var found = &Tenant{}
+	var found = &mongolia.Tenant{}
 	q = map[string]any{
 		"tenantId": tenantId,
 	}
@@ -72,7 +74,7 @@ func Test(t *testing.T) {
 	require.True(t, found.Equals(tenant))
 
 	//// change the tenant in memory does not change it in the database
-	//tid2 := newoid()
+	//tid2 := NewOID()
 	//name2 := "brad"
 	//tenant.TenantID = tid2
 	//tenant.Name = name2

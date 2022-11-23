@@ -2,7 +2,6 @@ package mongolia
 
 import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"time"
 )
 
 // IDField contains a model's ID field.
@@ -37,21 +36,4 @@ func (f *IDField) Equals(other *IDField) bool {
 		return false
 	}
 	return *f == *other
-}
-
-// DateFields contains the `created_at` and `updated_at`
-// fields that autofill when inserting or updating a model.
-type DateFields struct {
-	CreatedAt time.Time `json:"createdAt" bson:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt" bson:"updatedAt"`
-}
-
-func (f *DateFields) Creating() error {
-	f.CreatedAt = time.Now().UTC()
-	return nil
-}
-
-func (f *DateFields) Saving() error {
-	f.UpdatedAt = time.Now().UTC()
-	return nil
 }
