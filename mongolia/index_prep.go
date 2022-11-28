@@ -6,6 +6,25 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// prepareIndexes does whatever index preparation is needed on a mongo.Collection for
+// the collection to be used as a mongolia.Collection that enforces the given Schema.
+func prepareIndexes(coll *mongo.Collection, schema *Schema) ([]Index, error) {
+	required := requiredIndexes(schema)
+	existing, err := listIndexes(coll)
+	if err != nil {
+		return nil, err
+	}
+	if err = validateIndexes(existing, required); err != nil {
+		return nil, err
+	}
+	missing := missingIndexes(existing, required)
+	if err = addIndexSet(coll, missing); err != nil {
+		return nil, err
+	}
+	all := append(existing, missing...)
+	return all, nil
+}
+
 func validateIndexes(have []Index, want []Index) error {
 	for _, wanted := range want {
 		for _, idx := range have {
@@ -48,21 +67,4 @@ func addIndexSet(coll *mongo.Collection, set []Index) error {
 		added = append(added, idx.Name)
 	}
 	return nil
-}
-
-func prepareIndexes(coll *mongo.Collection, schema *Schema) ([]Index, error) {
-	required := requiredIndexes(schema)
-	existing, err := listIndexes(coll)
-	if err != nil {
-		return nil, err
-	}
-	if err = validateIndexes(existing, required); err != nil {
-		return nil, err
-	}
-	missing := missingIndexes(existing, required)
-	if err = addIndexSet(coll, missing); err != nil {
-		return nil, err
-	}
-	all := append(existing, missing...)
-	return all, nil
 }

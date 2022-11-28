@@ -2,18 +2,8 @@ package mongolia
 
 import "github.com/Kamva/mgm"
 
-//
-//type CollectionGetter interface {
-//	mgm.CollectionGetter
-//}
-//
-//type CollectionNameGetter interface {
-//	mgm.CollectionNameGetter
-//}
-
 type Model interface {
 	mgm.Model
-	Equaler
 }
 
 type DefaultModel struct {
@@ -29,9 +19,4 @@ func (m *DefaultModel) Creating() error {
 // Saving function calls the Saving hooks of DefaultModel's inner fields.
 func (m *DefaultModel) Saving() error {
 	return m.DateFields.Saving()
-}
-
-// Equals function tells whether this Model equals another.
-func (m *DefaultModel) Equals(other Model) bool {
-	return m.GetID()
 }

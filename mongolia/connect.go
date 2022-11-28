@@ -5,6 +5,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// connect connects ODM to the underlying mongo instance.
 func connect(config *Config) error {
 	opts := options.Client().ApplyURI(*config.URI)
 	mgmconf := &mgm.Config{
@@ -16,6 +17,8 @@ func connect(config *Config) error {
 	return nil
 }
 
+// connectCollection connects to a mgm.Collection with the given name and
+// does all setup needed to make it a Collection enforcing the Schema.
 func connectCollection(name string, schema *Schema) (*Collection, error) {
 	coll := mgm.CollectionByName(name)
 	indexes, err := prepareIndexes(coll.Collection, schema)

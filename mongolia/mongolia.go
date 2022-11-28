@@ -22,14 +22,19 @@ func ctx() context.Context {
 	return context.Background()
 }
 
+// Connect establishes ODM's connection with the underlying mongo instance.
 func Connect(config *Config) error {
 	return odm.Connect(config)
 }
 
-func AddSchema(name string, path string) error {
+// AddSchema adds a Schema to ODM.
+//
+// When a new Schema is added, a Collection enforcing that schema is added to the ODM.
+func AddSchema(name string, path string) (*Collection, error) {
 	return odm.AddSchema(name, path)
 }
 
+// GetCollection returns a handle to Collection given its name.
 func GetCollection(name string) (*Collection, error) {
 	return odm.GetCollection(name)
 }

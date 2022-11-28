@@ -5,6 +5,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// Collection exposes CRUD operations for Model, while disallowing
+// operations that would cause a document to violate the Schema.
 type Collection struct {
 	schema  *Schema
 	coll    *mgm.Collection
@@ -13,16 +15,6 @@ type Collection struct {
 
 func (c *Collection) FindByID(id any, model Model) error {
 	if err := c.coll.FindByID(id, model); err != nil {
-		return err
-	}
-	if err := c.schema.Validate(model); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (c *Collection) First(filter any, model Model, opts *options.FindOneOptions) error {
-	if err := c.coll.First(filter, model, opts); err != nil {
 		return err
 	}
 	if err := c.schema.Validate(model); err != nil {
@@ -41,21 +33,21 @@ func (c *Collection) Create(model Model, opts *options.InsertOneOptions) error {
 	return nil
 }
 
-func (c *Collection) Update(model Model, opts *options.UpdateOptions) error {
-	if err := c.schema.Validate(model); err != nil {
+func (c *Collection) First(filter any, model Model, opts *options.FindOneOptions) error {
+	if err := c.coll.First(filter, model, opts); err != nil {
 		return err
 	}
-	if err := c.coll.Update(model, opts); err != nil {
+	if err := c.schema.Validate(model); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *Collection) Save(model Model) error {
+func (c *Collection) Update(model Model, opts *options.UpdateOptions) error {
 	if err := c.schema.Validate(model); err != nil {
 		return err
 	}
-	if err := c.coll.Save(model); err != nil {
+	if err := c.coll.Update(model, opts); err != nil {
 		return err
 	}
 	return nil

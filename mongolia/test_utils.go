@@ -22,13 +22,3 @@ func NewTenant(id string, name string) *Tenant {
 		Name:     &name,
 	}
 }
-
-func (t *Tenant) Equals(other *Tenant) bool {
-	if *t.TenantID != *other.TenantID {
-		return false
-	}
-	if *t.Name != *other.Name {
-		return false
-	}
-	return true
-}

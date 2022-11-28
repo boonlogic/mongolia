@@ -32,21 +32,21 @@ func (o *ODM) Connect(config *Config) error {
 	return nil
 }
 
-func (o *ODM) AddSchema(name string, path string) error {
+func (o *ODM) AddSchema(name string, path string) (*Collection, error) {
 	def, err := ioutil.ReadFile(path)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	schema, err := odm.compileSchema(path, def)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	coll, err := connectCollection(name, schema)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	odm.colls[name] = *coll
-	return nil
+	return coll, nil
 }
 
 func (o *ODM) GetCollection(name string) (*Collection, error) {

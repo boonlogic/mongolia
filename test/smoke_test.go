@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/require"
 	"gitlab.boonlogic.com/development/expert/mongolia/mongolia"
-	"os"
 	"testing"
 	"time"
 )
@@ -18,23 +17,20 @@ func Test(t *testing.T) {
 
 	err := mongolia.Connect(cfg)
 	require.Nil(t, err)
+	defer mongolia.Drop()
 
-	mongolia.Drop()
-
-	// try to get a nonexistent collection
+	// no collections exist at startup
 	coll, err := mongolia.GetCollection("nonexistent")
 	require.NotNil(t, err)
 	require.Nil(t, coll)
 
-	// add a schema
-	path := os.Getenv("SCHEMA_PATH")
-	if path == "" {
-		path = "test/tenant.json"
-	}
-	err = mongolia.AddSchema("tenant", "test/tenant.json")
+	// when a schema is added, a corresponding collection is made
+	coll, err = mongolia.AddSchema("tenant", "test/tenant.json")
 	require.Nil(t, err)
 
-	// get the corresponding collection
+	mongolia.Drop()
+
+	// get the collection for confirmation
 	coll, err = mongolia.GetCollection("tenant")
 	require.Nil(t, err)
 	require.NotNil(t, coll)
@@ -54,7 +50,7 @@ func Test(t *testing.T) {
 	name := "luke"
 	tenant = mongolia.NewTenant(tenantId, name)
 
-	// create that tenant in the database
+	// create an associated record in the "tenants" collection
 	err = coll.Create(tenant, nil)
 	if err != nil {
 		fmt.Printf("error: %s\n", err)
@@ -64,19 +60,56 @@ func Test(t *testing.T) {
 	require.Equal(t, tenantId, *tenant.TenantID)
 	require.Equal(t, name, *tenant.Name)
 
-	// find the created tenant
+	// find the created tenant by ID
 	var found = &mongolia.Tenant{}
+	q = map[string]any{
+		"tenantId": tenantId,
+	}
+	err = coll.FindByID(tenant.GetID(), found)
+	require.Nil(t, err)
+	require.Equal(t, found.GetID(), tenant.GetID())
+
+	// find the created tenant using First
 	q = map[string]any{
 		"tenantId": tenantId,
 	}
 	err = coll.First(q, found, nil)
 	require.Nil(t, err)
-	require.True(t, found.Equals(tenant))
+	require.Equal(t, found.GetID(), tenant.GetID())
 
-	//// change the tenant in memory does not change it in the database
-	//tid2 := NewOID()
-	//name2 := "brad"
-	//tenant.TenantID = tid2
-	//tenant.Name = name2
+	// change the tenant in memory
+	tid2 := mongolia.NewOID()
+	name2 := "brad"
+	tenant.TenantID = &tid2
+	tenant.Name = &name2
 
+	// its DB document should remain unchanged
+	err = coll.FindByID(tenant.GetID(), found)
+	require.Nil(t, err)
+	require.NotEqual(t, *found.TenantID, tid2)
+	require.NotEqual(t, *found.Name, name2)
+
+	// update the DB document to match the struct
+	err = coll.Update(tenant, nil)
+	require.Nil(t, err)
+
+	// validate that Update did not change the tenant struct
+	require.Equal(t, *tenant.TenantID, tid2)
+	require.Equal(t, *tenant.Name, name2)
+
+	// validate that the DB document matches the tenant struct
+	err = coll.FindByID(tenant.GetID(), found)
+	require.Nil(t, err)
+	require.Equal(t, *found.TenantID, *tenant.TenantID)
+	require.Equal(t, *found.Name, *tenant.Name)
+
+	// delete the tenant
+	err = coll.Delete(tenant)
+	require.Nil(t, err)
+
+	// make sure they're gone
+	found = new(mongolia.Tenant)
+	err = coll.FindByID(tenant.GetID(), found)
+	require.NotNil(t, err)
+	require.Empty(t, found)
 }
