@@ -2,13 +2,14 @@ package mongolia
 
 import "github.com/Kamva/mgm"
 
-type CollectionGetter interface {
-	mgm.CollectionGetter
-}
-
-type CollectionNameGetter interface {
-	mgm.CollectionNameGetter
-}
+//
+//type CollectionGetter interface {
+//	mgm.CollectionGetter
+//}
+//
+//type CollectionNameGetter interface {
+//	mgm.CollectionNameGetter
+//}
 
 type Model interface {
 	mgm.Model
@@ -21,20 +22,16 @@ type DefaultModel struct {
 }
 
 // Creating function calls the Creating hooks of DefaultModel's inner fields.
-func (model *DefaultModel) Creating() error {
-	return model.DateFields.Creating()
+func (m *DefaultModel) Creating() error {
+	return m.DateFields.Creating()
 }
 
 // Saving function calls the Saving hooks of DefaultModel's inner fields.
-func (model *DefaultModel) Saving() error {
-	return model.DateFields.Saving()
+func (m *DefaultModel) Saving() error {
+	return m.DateFields.Saving()
 }
 
-// One DefaultModel equals another if they point to the same database record.
-// The DateFields may differ as these are ODM-managed and not application-specific.
-func (model *DefaultModel) Equals(other *DefaultModel) bool {
-	if !model.IDField.Equals(other.IDField) {
-		equal = true
-	}
-	return true
+// Equals function tells whether this Model equals another.
+func (m *DefaultModel) Equals(other Model) bool {
+	return m.GetID()
 }
