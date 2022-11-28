@@ -3,10 +3,12 @@ package mongolia
 import (
 	"errors"
 	"fmt"
+	"go.mongodb.org/mongo-driver/mongo"
 	"io/ioutil"
 )
 
 type ODM struct {
+	client   *mongo.Client
 	config   *Config
 	compiler *Compiler
 	colls    map[string]Collection
@@ -82,4 +84,5 @@ func (o *ODM) drop() {
 			panic(err)
 		}
 	}
+	// todo: drop odm database itself
 }
