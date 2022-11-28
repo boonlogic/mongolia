@@ -5,6 +5,9 @@
     "tenantId",
     "name"
   ],
+  "x-unique": [
+    "tenantId"
+  ],
   "properties": {
     "tenantId": {
       "type": "string",
