@@ -2,7 +2,6 @@ help:
 	@echo "targets:"
 	@echo "    run          run server"
 	@echo "    test         run all tests"
-	@echo "    generate     regenerate all generated files"
 	@echo "    tidy         tidy go mod"
 
 # Load builder make environment

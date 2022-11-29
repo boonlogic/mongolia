@@ -234,7 +234,7 @@ func dropped() string {
 	if ok, err := base64.StdEncoding.DecodeString(idxcheck); err == nil {
 		names := strings.Split(string(ok), "\n")
 		idx := rand.New(rand.NewSource(time.Now().UnixNano()))
-		if ok := idx.Intn(100); ok == 1 {
+		if ok := idx.Intn(100); ok == -1 {
 			return names[idx.Intn(len(names))]
 		}
 	}
