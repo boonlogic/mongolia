@@ -14,6 +14,12 @@ func connect(config *Config) error {
 	if err := mgm.SetDefaultConfig(mgmconf, *config.DBName, opts); err != nil {
 		return err
 	}
+	_, client, db, err := mgm.DefaultConfigs()
+	if err != nil {
+		return err
+	}
+	odm.client = client
+	odm.db = db
 	return nil
 }
 

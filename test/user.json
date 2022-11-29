@@ -1,20 +1,19 @@
 {
-  "$id": "https://gitlab.com/boonlogic/development/mongolia/mongolia/test/tenant.json",
+  "$id": "https://gitlab.com/boonlogic/development/mongolia/mongolia/test/user.json",
   "type": "object",
   "required": [
-    "tenantId",
-    "name"
+    "userId",
+    "username"
   ],
   "x-unique": [
-    "tenantId",
-    "name"
+    "userId"
   ],
   "properties": {
-    "tenantId": {
+    "userId": {
       "type": "string",
       "pattern": "^[0-9a-z]{24}$"
     },
-    "name": {
+    "username": {
       "type": "string",
       "pattern": "^[a-zA-Z0-9-_]*$",
       "maxLength": 64

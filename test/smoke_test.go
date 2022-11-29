@@ -17,7 +17,8 @@ func Test(t *testing.T) {
 
 	err := mongolia.Connect(cfg)
 	require.Nil(t, err)
-	defer mongolia.Drop()
+
+	mongolia.Drop()
 
 	// no collections exist at startup
 	coll, err := mongolia.GetCollection("nonexistent")
@@ -25,91 +26,92 @@ func Test(t *testing.T) {
 	require.Nil(t, coll)
 
 	// when a schema is added, a corresponding collection is made
-	coll, err = mongolia.AddSchema("tenant", "test/tenant.json")
+	coll, err = mongolia.AddSchema("user", "test/user.json")
 	require.Nil(t, err)
 
-	mongolia.Drop()
-
-	// get the collection for confirmation
-	coll, err = mongolia.GetCollection("tenant")
+	// get the collection that was made
+	coll, err = mongolia.GetCollection("user")
 	require.Nil(t, err)
 	require.NotNil(t, coll)
 
-	// try to find a nonexistent tenant
-	var result *mongolia.Tenant
-	q := map[string]any{
-		"tenantId": mongolia.NewOID(),
-	}
-	coll.First(q, result, nil)
-	require.Nil(t, err)
-	require.Nil(t, result)
-
-	// make a new tenant in memory
-	var tenant *mongolia.Tenant
-	tenantId := mongolia.NewOID()
+	// make a new user in memory
+	var user *User
+	uid := NewUserID()
 	name := "luke"
-	tenant = mongolia.NewTenant(tenantId, name)
+	user = NewUser(uid, name)
 
 	// create an associated record in the "tenants" collection
-	err = coll.Create(tenant, nil)
+	err = coll.Create(user, nil)
 	if err != nil {
 		fmt.Printf("error: %s\n", err)
 	}
 	require.Nil(t, err)
-	require.NotNil(t, tenant)
-	require.Equal(t, tenantId, *tenant.TenantID)
-	require.Equal(t, name, *tenant.Name)
+	require.NotNil(t, user)
+	require.Equal(t, uid, *user.UserID)
+	require.Equal(t, name, *user.Username)
 
-	// find the created tenant by ID
-	var found = &mongolia.Tenant{}
-	q = map[string]any{
-		"tenantId": tenantId,
-	}
-	err = coll.FindByID(tenant.GetID(), found)
+	// find the created user by ID
+	var found = &User{}
+	err = coll.FindByID(user.GetID(), found)
 	require.Nil(t, err)
-	require.Equal(t, found.GetID(), tenant.GetID())
+	require.Equal(t, found.GetID(), user.GetID())
 
-	// find the created tenant using First
-	q = map[string]any{
-		"tenantId": tenantId,
-	}
-	err = coll.First(q, found, nil)
-	require.Nil(t, err)
-	require.Equal(t, found.GetID(), tenant.GetID())
+	//// try to find a nonexistent user by ID
+	//found = new(User)
+	//err = coll.FindByID(NewUserID(), found)
+	//require.NotNil(t, err)
+	//require.
+	//
+	//// find the created user using First
+	//q := map[string]any{
+	//	"uid": uid,
+	//}
+	//err = coll.First(q, found, nil)
+	//require.Nil(t, err)
+	//require.Equal(t, found.GetID(), user.GetID())
+	//
+	//// try to find a nonexistent user using First
+	//var result *User
+	//q = map[string]any{
+	//	"uid": NewUserID(),
+	//}
+	//coll.First(q, result, nil)
+	//require.Nil(t, err)
+	//require.Nil(t, result)
 
-	// change the tenant in memory
-	tid2 := mongolia.NewOID()
+	// change the user in memory
+	tid2 := NewUserID()
 	name2 := "brad"
-	tenant.TenantID = &tid2
-	tenant.Name = &name2
+	user.UserID = &tid2
+	user.Username = &name2
 
 	// its DB document should remain unchanged
-	err = coll.FindByID(tenant.GetID(), found)
+	err = coll.FindByID(user.GetID(), found)
 	require.Nil(t, err)
-	require.NotEqual(t, *found.TenantID, tid2)
-	require.NotEqual(t, *found.Name, name2)
+	require.NotEqual(t, *found.UserID, tid2)
+	require.NotEqual(t, *found.Username, name2)
 
 	// update the DB document to match the struct
-	err = coll.Update(tenant, nil)
+	err = coll.Update(user, nil)
 	require.Nil(t, err)
 
-	// validate that Update did not change the tenant struct
-	require.Equal(t, *tenant.TenantID, tid2)
-	require.Equal(t, *tenant.Name, name2)
+	// validate that Update did not change the user struct
+	require.Equal(t, *user.UserID, tid2)
+	require.Equal(t, *user.Username, name2)
 
-	// validate that the DB document matches the tenant struct
-	err = coll.FindByID(tenant.GetID(), found)
+	// validate that the DB document matches the user struct
+	err = coll.FindByID(user.GetID(), found)
 	require.Nil(t, err)
-	require.Equal(t, *found.TenantID, *tenant.TenantID)
-	require.Equal(t, *found.Name, *tenant.Name)
+	require.Equal(t, *found.UserID, *user.UserID)
+	require.Equal(t, *found.Username, *user.Username)
 
-	// delete the tenant
-	err = coll.Delete(tenant)
+	// delete the user
+	err = coll.Delete(user)
 	require.Nil(t, err)
 
 	// make sure they're gone
-	found = new(mongolia.Tenant)
-	err = coll.FindByID(tenant.GetID(), found)
+	found = new(User)
+	err = coll.FindByID(user.GetID(), found)
 	require.NotNil(t, err)
 	require.Empty(t, found)
 }
