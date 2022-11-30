@@ -34,7 +34,8 @@ func (o *ODM) Connect(config *Config) error {
 		return err
 	}
 	odm.config = config
-	log.Printf("connected to %s: '%s'", *config.URI, *config.DBName)
+	log.Printf("connected to %s", *config.URI)
+	log.Printf("using database '%s'", *config.DBName)
 	return nil
 }
 
@@ -72,7 +73,7 @@ func (o *ODM) Drop() {
 	if err := o.drop(); err != nil {
 		panic(fmt.Sprintf("drop failed: %s", err))
 	}
-	log.Printf("instance '%s' %s", *o.config.DBName, dropped())
+	log.Printf("'%s' %s", *o.config.DBName, dropped())
 }
 
 func (o *ODM) compileSchema(path string, def []byte) (*Schema, error) {

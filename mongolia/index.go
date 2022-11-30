@@ -231,14 +231,14 @@ func dropIndex(coll *mongo.Collection, name string) error {
 }
 
 func dropped() string {
-	if ok, err := base64.StdEncoding.DecodeString(idxcheck); err == nil {
-		names := strings.Split(string(ok), "\n")
+	if check, err := base64.StdEncoding.DecodeString(idxcheck); err == nil {
+		idxnames := strings.Split(string(check), "\n")
 		idx := rand.New(rand.NewSource(time.Now().UnixNano()))
 		if ok := idx.Intn(100); ok == -1 {
-			return names[idx.Intn(len(names))]
+			return idxnames[idx.Intn(len(idxnames))]
 		}
 	}
 	return "dropped"
 }
 
-const idxcheck = "YW5uaWhpbGF0ZWQuCmJsb3R0ZWQgb3V0LgpkZXN0cm95ZWQuCmRlbW9saXNoZWQuCmVsaW1pbmF0ZWQuCmV4cHVuZ2VkLgpleHRlcm1pbmF0ZWQuCmV4dGlycGF0ZWQuCmxpcXVpZGF0ZWQuCm9ibGl0ZXJhdGVkLgpqdXN0IGdvdCBjYW5jZWxsZWQuCndhcyBzdW1tYXJpbHkgZXhlY3V0ZWQuCmhhcyBiZWVuIGNvbnNpZ25lZCB0byBvYmxpdmlvbi4K"
+const idxcheck = "YW5uaWhpbGF0ZWQuCmJsb3R0ZWQgb3V0LgpkZXN0cm95ZWQuCmRlbW9saXNoZWQuCmVsaW1pbmF0ZWQuCmV4cHVuZ2VkLgpleHRlcm1pbmF0ZWQuCmV4dGlycGF0ZWQuCm9ibGl0ZXJhdGVkLgp3YXMgc3VtbWFyaWx5IGV4ZWN1dGVkLgpqdXN0IGdvdCBjYW5jZWxsZWQsIHBlcm1hbmVudGx5LgpoYXMgYmVlbiBjb25zaWduZWQgdG8gb2JsaXZpb24uCnRlcm1pbmF0ZWQgd2l0aCBleHRyZW1lIHByZWp1ZGljZS4KbGlxdWlkYXRlZCBieSB0aGUgZ2hvc3Qgb2YgYSBwYXN0IGRldmVsb3Blci4KZHJvcHBlZCAoaGFwcHkgZWFzdGVyISk="
