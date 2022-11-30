@@ -32,7 +32,7 @@ func Test(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, coll)
 
-	// fail to get a collection
+	// fail to find a collection that does not exist
 	result, err := mongolia.GetCollection("nonexistent")
 	require.NotNil(t, err)
 	require.Nil(t, result)
@@ -92,7 +92,8 @@ func Test(t *testing.T) {
 	require.NotEqual(t, *found.UserID, tid2)
 	require.NotEqual(t, *found.Username, name2)
 
-	// update the DB document to match the struct
+	// call Update to make the DB document match the struct
+	// this updates the associated document in collection "user"
 	err = coll.Update(user, nil)
 	require.Nil(t, err)
 
@@ -107,10 +108,11 @@ func Test(t *testing.T) {
 	require.Equal(t, *found.Username, *user.Username)
 
 	// delete user
+	// this deletes the DB document corresponding to user
 	err = coll.Delete(user)
 	require.Nil(t, err)
 
-	// make sure they're gone
+	// user is gone
 	found = new(User)
 	err = coll.FindByID(user.GetID(), found)
 	require.NotNil(t, err)
