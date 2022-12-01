@@ -1,6 +1,6 @@
-Hi team,
+Hi all,
 
-Here are some comments on our current Atlas resources. I guess it is also a mini tutorial in mongo. I have some recommendations for conventions moving forward which you may follow to the extent they prove helpful.
+Here is a state-of-the-union on our current Atlas resources. I guess it is also a mini tutorial in mongo. I have some recommendations for conventions moving forward which you may follow to the extent they prove helpful.
 
 Our tenancy
 -----------
@@ -85,4 +85,4 @@ You can use any data type in the `"_id"` field (not just native `ObjectIDs`) but
 
 It has been a great honor to be your Database Custodian.
 
--LA
+-Luke
