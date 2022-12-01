@@ -28,9 +28,9 @@ Environment
 Organization
 ------------
 ```
-├── cmd        <- server executable
+├── cmd        <- server runnable
 ├── docs       <- documentation
 ├── mongolia   <- package `mongolia` (core package)
-├── restapi    <- package `restapi` (runs mongolia as a web service)
+├── restapi    <- package `restapi` (mongolia over HTTP)
 └── test       <- code for testing
 ```
