@@ -24,7 +24,7 @@ func Test(t *testing.T) {
 	defer mongolia.Drop()
 
 	// adding a schema creates a corresponding collection
-	coll, err := mongolia.AddSchema("user", "test/user.json")
+	coll, err := mongolia.AddSchema("user", "/Users/lukearend/builder/packages/mongolia/mongolia/test/user.json")
 	require.Nil(t, err)
 
 	// get the collection that was made

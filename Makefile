@@ -1,23 +1,18 @@
-help:
-	@echo "targets:"
-	@echo "    run          run server"
-	@echo "    test         run all tests"
-	@echo "    tidy         tidy go mod"
+.PHONY: test
 
 # Load builder make environment
-TOP?=$(shell cd .. && git rev-parse --show-toplevel)
--include $(TOP)/mk/base.mk
+#TOP?=$(shell cd .. && git rev-parse --show-toplevel)
+#-include $(TOP)/mk/base.mk
 
 # Load local environment
 -include .env
 export
 
-run:
-	go run ./cmd/mongolia
+run: ## run server
+	@go run ./cmd/mongolia
 
-test:
-	go test -cover ./...
+test: ## run tests
+	@go test ./... -v
 
-tidy:
-	@echo "tidy..."
-	go mod tidy
+tidy: ## sync go.mod to source files
+	@go mod tidy
