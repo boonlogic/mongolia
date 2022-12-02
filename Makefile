@@ -1,10 +1,5 @@
-.PHONY: test
+.DEFAULT_GOAL = help
 
-# Load builder make environment
-#TOP?=$(shell cd .. && git rev-parse --show-toplevel)
-#-include $(TOP)/mk/base.mk
-
-# Load local environment
 -include .env
 export
 
@@ -16,3 +11,9 @@ test: ## run tests
 
 tidy: ## sync go.mod to source files
 	@go mod tidy
+
+help: ## print this help
+	@grep -E '^[0-9a-zA-Z%_-]+:.*## .*$$' $(firstword $(MAKEFILE_LIST)) | \
+	awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
+.PHONY: test
