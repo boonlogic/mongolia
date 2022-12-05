@@ -6,6 +6,8 @@ export
 run: ## run server
 	@go run ./cmd/mongolia
 
+build:
+
 test: ## run tests
 	@go test ./... -v
 
