@@ -31,6 +31,5 @@ Organization
 ├── cmd        <- server runnable
 ├── docs       <- documentation
 ├── mongolia   <- package `mongolia` (core package)
-├── restapi    <- package `restapi` (mongolia over HTTP)
 └── test       <- code for testing
 ```

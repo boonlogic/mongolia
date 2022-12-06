@@ -24,7 +24,7 @@ func Test(t *testing.T) {
 	defer mongolia.Drop()
 
 	// adding a schema creates a corresponding collection
-	coll, err := mongolia.AddSchema("user", "/Users/lukearend/builder/packages/mongolia/mongolia/test/user.json")
+	coll, err := mongolia.AddSchema("user", "/home/rodney/builder/packages/mongolia/mongolia/test/user.json")
 	require.Nil(t, err)
 
 	// get the collection that was made
@@ -65,18 +65,18 @@ func Test(t *testing.T) {
 	require.NotNil(t, err)
 	require.Empty(t, found)
 
-	// find the created user with First
+	// find the created user with FindOne
 	q := map[string]any{
 		"userId": uid,
 	}
-	err = coll.First(q, found, nil)
+	err = coll.FindOne(q, found, nil)
 	require.Nil(t, err)
 	require.Equal(t, found.GetID(), user.GetID())
 
-	// fail to find a user with First
+	// fail to find a user with FindOne
 	found = new(User)
 	q["userId"] = NewUserID()
-	coll.First(q, found, nil)
+	coll.FindOne(q, found, nil)
 	require.Nil(t, err)
 	require.Empty(t, found)
 
@@ -109,7 +109,7 @@ func Test(t *testing.T) {
 
 	// delete user
 	// this deletes the DB document corresponding to user
-	err = coll.Delete(user)
+	err = coll.DeleteByID(user)
 	require.Nil(t, err)
 
 	// user is gone

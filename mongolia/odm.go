@@ -3,9 +3,10 @@ package mongolia
 import (
 	"errors"
 	"fmt"
-	"go.mongodb.org/mongo-driver/mongo"
 	"io/ioutil"
 	"log"
+
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type ODM struct {

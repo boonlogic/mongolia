@@ -1,7 +1,6 @@
 package mongolia
 
 import (
-	"context"
 	"time"
 )
 
@@ -16,10 +15,6 @@ var odm *ODM
 
 func init() {
 	odm = NewODM()
-}
-
-func ctx() context.Context {
-	return context.Background()
 }
 
 // Connect establishes a connection with the underlying mongo instance.
