@@ -24,7 +24,7 @@ func Test(t *testing.T) {
 	defer mongolia.Drop()
 
 	// adding a schema creates a corresponding collection
-	coll, err := mongolia.AddSchema("user", "/Users/lukearend/builder/packages/mongolia/mongolia/test/user.json")
+	coll, err := mongolia.AddSchema("user", "/home/rodney/builder/packages/mongolia/mongolia/test/user.json")
 	require.Nil(t, err)
 
 	// get the collection that was made
@@ -109,7 +109,7 @@ func Test(t *testing.T) {
 
 	// delete user
 	// this deletes the DB document corresponding to user
-	err = coll.Delete(user)
+	err = coll.DeleteByID(user)
 	require.Nil(t, err)
 
 	// user is gone

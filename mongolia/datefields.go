@@ -1,6 +1,7 @@
 package mongolia
 
 import (
+	"context"
 	"time"
 )
 
@@ -11,12 +12,12 @@ type DateFields struct {
 	UpdatedAt time.Time `json:"updatedAt" bson:"updatedAt"`
 }
 
-func (f *DateFields) Creating() error {
+func (f *DateFields) PreCreate(ctx context.Context) error {
 	f.CreatedAt = time.Now().UTC()
 	return nil
 }
 
-func (f *DateFields) Saving() error {
+func (f *DateFields) PreSave(ctx context.Context) error {
 	f.UpdatedAt = time.Now().UTC()
 	return nil
 }

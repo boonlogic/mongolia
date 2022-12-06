@@ -1,5 +1,14 @@
 package mongolia
 
+import "context"
+
+type FindResult struct {
+	Skip       int64
+	Limit      int64
+	Filtered   int64
+	Collection int64
+}
+
 // Model interface contains base methods that must be implemented by
 // each model. If you're using the `DefaultModel` struct in your model,
 // you don't need to implement any of these methods.
@@ -18,11 +27,11 @@ type DefaultModel struct {
 }
 
 // Creating function calls the Creating hooks of DefaultModel's inner fields.
-func (m *DefaultModel) Creating() error {
-	return m.DateFields.Creating()
+func (m *DefaultModel) PreCreate(ctx context.Context) error {
+	return m.DateFields.PreCreate(ctx)
 }
 
 // Saving function calls the Saving hooks of DefaultModel's inner fields.
-func (m *DefaultModel) Saving() error {
-	return m.DateFields.Saving()
+func (m *DefaultModel) PreSave(ctx context.Context) error {
+	return m.DateFields.PreSave(ctx)
 }

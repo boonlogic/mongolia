@@ -2,6 +2,7 @@ package mongolia
 
 import (
 	"encoding/json"
+
 	"github.com/santhosh-tekuri/jsonschema/v5"
 )
 
