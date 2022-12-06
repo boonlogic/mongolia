@@ -1,9 +1,15 @@
 package mongolia
 
-import "github.com/Kamva/mgm"
-
+// Model interface contains base methods that must be implemented by
+// each model. If you're using the `DefaultModel` struct in your model,
+// you don't need to implement any of these methods.
 type Model interface {
-	mgm.Model
+	// PrepareID converts the id value if needed, then
+	// returns it (e.g convert string to objectId).
+	PrepareID(id interface{}) (interface{}, error)
+
+	GetID() interface{}
+	SetID(id interface{})
 }
 
 type DefaultModel struct {

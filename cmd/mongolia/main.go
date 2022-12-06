@@ -1,11 +1,10 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-	"gitlab.boonlogic.com/development/expert/mongolia/mongolia"
-	"gitlab.boonlogic.com/development/expert/mongolia/restapi"
 	"log"
 	"os"
+
+	"gitlab.boonlogic.com/development/expert/mongolia/mongolia"
 )
 
 func main() {
@@ -17,9 +16,4 @@ func main() {
 		log.Fatalf("failed to connect: %s\n", err)
 	}
 
-	router := gin.Default()
-	router.GET("/hello", restapi.SayHello)
-	if err := router.Run("localhost:8080"); err != nil {
-		log.Fatalf("error: %s\n", err)
-	}
 }

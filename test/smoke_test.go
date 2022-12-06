@@ -65,18 +65,18 @@ func Test(t *testing.T) {
 	require.NotNil(t, err)
 	require.Empty(t, found)
 
-	// find the created user with First
+	// find the created user with FindOne
 	q := map[string]any{
 		"userId": uid,
 	}
-	err = coll.First(q, found, nil)
+	err = coll.FindOne(q, found, nil)
 	require.Nil(t, err)
 	require.Equal(t, found.GetID(), user.GetID())
 
-	// fail to find a user with First
+	// fail to find a user with FindOne
 	found = new(User)
 	q["userId"] = NewUserID()
-	coll.First(q, found, nil)
+	coll.FindOne(q, found, nil)
 	require.Nil(t, err)
 	require.Empty(t, found)
 
