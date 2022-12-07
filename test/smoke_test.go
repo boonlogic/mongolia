@@ -2,8 +2,8 @@ package test
 
 import (
 	"fmt"
+	"github.com/boonlogic/mongolia"
 	"github.com/stretchr/testify/require"
-	"gitlab.boonlogic.com/development/expert/mongolia/mongolia"
 	"testing"
 	"time"
 )
