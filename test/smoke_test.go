@@ -9,33 +9,27 @@ import (
 )
 
 func Test(t *testing.T) {
-	cfg := mongolia.NewConfig().
+
+	odm := mongolia.NewODM().
 		SetURI("mongodb://localhost:27017").
 		SetDBName("mongolia-local-tmp").
-		SetTimeout(10 * time.Second).
-		SetEphemeral(true)
+		SetTimeout(10 * time.Second)
 
 	// connect to mongo
-	err := mongolia.Connect(cfg)
+	err := odm.Connect()
 	require.Nil(t, err)
 
 	// start clean, end clean
-	mongolia.Drop()
-	defer mongolia.Drop()
+	odm.Drop()
+	defer odm.Drop()
 
 	// adding a schema creates a corresponding collection
-	coll, err := mongolia.AddSchema("user", "/home/rodney/builder/packages/mongolia/mongolia/test/user.json")
-	require.Nil(t, err)
-
-	// get the collection that was made
-	coll, err = mongolia.GetCollection("user")
-	require.Nil(t, err)
+	coll := odm.CreateCollection("user")
 	require.NotNil(t, coll)
 
-	// fail to find a collection that does not exist
-	result, err := mongolia.GetCollection("nonexistent")
-	require.NotNil(t, err)
-	require.Nil(t, result)
+	// get the collection that was made
+	coll = odm.GetCollection("user")
+	require.NotNil(t, coll)
 
 	// make a new user struct in memory
 	uid := NewUserID()

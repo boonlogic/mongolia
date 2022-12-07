@@ -1,6 +1,8 @@
 package mongolia
 
-import "context"
+import (
+	"go.mongodb.org/mongo-driver/mongo"
+)
 
 type FindResult struct {
 	Skip       int64
@@ -19,6 +21,21 @@ type Model interface {
 
 	GetID() interface{}
 	SetID(id interface{})
+
+	GetTagReferences() map[string]string
+
+	Validate() error
+	ValidateCreate() error
+	ValidateUpdate() error
+
+	PreCreate() error
+	PostCreate() error
+	PreUpdate() error
+	PostUpdate(result *mongo.UpdateResult) error
+	PreSave() error
+	PostSave() error
+	PreDelete() error
+	PostDelete(result *mongo.DeleteResult) error
 }
 
 type DefaultModel struct {
@@ -26,12 +43,50 @@ type DefaultModel struct {
 	DateFields `bson:",inline"`
 }
 
-// Creating function calls the Creating hooks of DefaultModel's inner fields.
-func (m *DefaultModel) PreCreate(ctx context.Context) error {
-	return m.DateFields.PreCreate(ctx)
+func (m *DefaultModel) Validate() error {
+	return nil
 }
 
-// Saving function calls the Saving hooks of DefaultModel's inner fields.
-func (m *DefaultModel) PreSave(ctx context.Context) error {
-	return m.DateFields.PreSave(ctx)
+func (m *DefaultModel) ValidateCreate() error {
+	return m.Validate()
+}
+
+func (m *DefaultModel) ValidateUpdate() error {
+	return m.Validate()
+}
+
+func (m *DefaultModel) PreCreate() error {
+	return m.DateFields.PreCreate()
+}
+
+func (m *DefaultModel) PostCreate() error {
+	return nil
+}
+
+func (m *DefaultModel) PreUpdate() error {
+	return nil
+}
+
+func (m *DefaultModel) PostUpdate(result *mongo.UpdateResult) error {
+	return nil
+}
+
+func (m *DefaultModel) PreSave() error {
+	return m.DateFields.PreSave()
+}
+
+func (m *DefaultModel) PostSave() error {
+	return nil
+}
+
+func (m *DefaultModel) PreDelete() error {
+	return nil
+}
+
+func (m *DefaultModel) PostDelete(result *mongo.DeleteResult) error {
+	return nil
+}
+
+func (m *DefaultModel) GetTagReferences() map[string]string {
+	return GetStructTags(*m, "ref")
 }

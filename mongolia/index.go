@@ -1,15 +1,17 @@
 package mongolia
 
 import (
+	"context"
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"math/rand"
 	"strings"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Index struct {
@@ -181,12 +183,12 @@ func indexName(keys []IndexKey) string {
 }
 
 func listIndexes(coll *mongo.Collection) ([]Index, error) {
-	curs, err := coll.Indexes().List(ctx())
+	curs, err := coll.Indexes().List(context.Background())
 	if err != nil {
 		return nil, err
 	}
 	var docs []bson.D
-	if err = curs.All(ctx(), &docs); err != nil {
+	if err = curs.All(context.Background(), &docs); err != nil {
 		return nil, err
 	}
 	idxs := make([]Index, len(docs))
@@ -217,14 +219,14 @@ func addIndex(coll *mongo.Collection, index Index) error {
 		Keys:    keys,
 		Options: opts,
 	}
-	if _, err := coll.Indexes().CreateOne(ctx(), idxm, options.CreateIndexes()); err != nil {
+	if _, err := coll.Indexes().CreateOne(context.Background(), idxm, options.CreateIndexes()); err != nil {
 		return err
 	}
 	return nil
 }
 
 func dropIndex(coll *mongo.Collection, name string) error {
-	if _, err := coll.Indexes().DropOne(ctx(), name); err != nil {
+	if _, err := coll.Indexes().DropOne(context.Background(), name); err != nil {
 		return err
 	}
 	return nil
