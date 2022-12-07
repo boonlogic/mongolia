@@ -1,4 +1,4 @@
-module gitlab.boonlogic.com/development/expert/mongolia
+module github.com/boonlogic/mongolia
 
 go 1.19
 

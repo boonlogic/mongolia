@@ -4,6 +4,21 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+func beforeSaveHooks(model Model) error {
+	if err := model.PreSave(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func afterSaveHooks(model Model) error {
+	if err := model.PostSave(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func beforeCreateHooks(model Model) error {
 	if err := model.PreCreate(); err != nil {
 		return err

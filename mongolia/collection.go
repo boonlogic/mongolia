@@ -17,6 +17,18 @@ type Collection struct {
 	ctx  context.Context
 }
 
+func (c *Collection) Save(model Model) error {
+	if err := model.Validate(); err != nil {
+		return err
+	}
+
+	if err := beforeSaveHooks(model); err != nil {
+		return err
+	}
+
+	return afterSaveHooks(model)
+}
+
 func (c *Collection) Create(model Model, opts *options.InsertOneOptions) error {
 	if err := model.Validate(); err != nil {
 		return err
