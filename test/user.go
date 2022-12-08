@@ -14,6 +14,12 @@ type User struct {
 	Perms                 []primitive.ObjectID `json:"perms,omitempty" bson:"perms,omitempty" ref:"permission"`
 }
 
+func (user *User) SetIndexes() map[string]string {
+	indexes := make(map[string]string)
+	indexes["username"] = "-1"
+	indexes["userId"] = "1"
+	return indexes
+}
 func (user *User) PreCreate() error {
 	// Call the DefaultModel Creating hook
 	if err := user.DefaultModel.PreCreate(); err != nil {

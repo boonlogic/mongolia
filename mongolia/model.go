@@ -25,6 +25,7 @@ type Model interface {
 	GetTagReferences() map[string]string
 
 	Validate() error
+	ValidateRead() error
 	ValidateCreate() error
 	ValidateUpdate() error
 
@@ -45,6 +46,10 @@ type DefaultModel struct {
 
 func (m *DefaultModel) Validate() error {
 	return nil
+}
+
+func (m *DefaultModel) ValidateRead() error {
+	return m.Validate()
 }
 
 func (m *DefaultModel) ValidateCreate() error {

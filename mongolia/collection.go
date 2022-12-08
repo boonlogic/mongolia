@@ -2,6 +2,7 @@ package mongolia
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -17,8 +18,13 @@ type Collection struct {
 	ctx  context.Context
 }
 
+func (c *Collection) CreateIndexes(indexes string) error {
+	fmt.Printf("TODO Create Indexes %v \n", indexes)
+	//return PopulateIndexes(c.coll, indexes)
+}
+
 func (c *Collection) Save(model Model) error {
-	if err := model.Validate(); err != nil {
+	if err := model.ValidateRead(); err != nil {
 		return err
 	}
 
@@ -30,7 +36,7 @@ func (c *Collection) Save(model Model) error {
 }
 
 func (c *Collection) Create(model Model, opts *options.InsertOneOptions) error {
-	if err := model.Validate(); err != nil {
+	if err := model.ValidateCreate(); err != nil {
 		return err
 	}
 
@@ -58,7 +64,7 @@ func (c *Collection) FindByID(id any, model Model) error {
 	if err := c.coll.FindOne(c.ctx, bson.D{{"_id", idp}}).Decode(model); err != nil {
 		return err
 	}
-	if err := model.Validate(); err != nil {
+	if err := model.ValidateRead(); err != nil {
 		return err
 	}
 	return nil
@@ -68,7 +74,7 @@ func (c *Collection) FindOne(filter any, model Model, opts *options.FindOneOptio
 	if err := c.coll.FindOne(c.ctx, filter, opts).Decode(model); err != nil {
 		return err
 	}
-	if err := model.Validate(); err != nil {
+	if err := model.ValidateRead(); err != nil {
 		return err
 	}
 	return nil
@@ -100,7 +106,7 @@ func (c *Collection) Find(filter any, models []Model, opts *options.FindOptions)
 	}
 
 	for _, model := range models {
-		if err := model.Validate(); err != nil {
+		if err := model.ValidateRead(); err != nil {
 			return nil, err
 		}
 	}
@@ -110,7 +116,7 @@ func (c *Collection) Find(filter any, models []Model, opts *options.FindOptions)
 }
 
 func (c *Collection) Update(model Model, opts *options.UpdateOptions) error {
-	if err := model.Validate(); err != nil {
+	if err := model.ValidateUpdate(); err != nil {
 		return err
 	}
 
@@ -165,7 +171,7 @@ func (c *Collection) Aggregate(models []Model, pipeline any) error {
 	}
 
 	for _, model := range models {
-		if err := model.Validate(); err != nil {
+		if err := model.ValidateRead(); err != nil {
 			return err
 		}
 	}

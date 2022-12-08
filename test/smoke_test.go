@@ -24,8 +24,16 @@ func Test(t *testing.T) {
 	defer odm.Drop()
 
 	// adding a schema creates a corresponding collection
-	coll := odm.CreateCollection("user")
+	coll := odm.CreateCollection("user", nil)
 	require.NotNil(t, coll)
+
+	//Create Indexes
+	indexes := map[string]string{
+        "userId": "text",
+        "username": "text"
+    }
+    indexbytes, _ := json.Marshal(indexes)
+	coll.CreateIndexes(string(indexbytes))
 
 	// get the collection that was made
 	coll = odm.GetCollection("user")

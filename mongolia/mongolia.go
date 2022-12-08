@@ -62,7 +62,7 @@ func (odm *ODM) GetCollection(name string) *Collection {
 	return &coll
 }
 
-func (odm *ODM) CreateCollection(name string) *Collection {
+func (odm *ODM) CreateCollection(name string, indexes *string) *Collection {
 	coll := odm.database.Collection(name)
 	c := &Collection{
 		name: name,
@@ -70,6 +70,9 @@ func (odm *ODM) CreateCollection(name string) *Collection {
 		ctx:  odm.ctx,
 	}
 	odm.colls[name] = *c
+	if indexes != nil {
+		err = c.CreateIndexes(*indexes)
+	}
 	log.Printf("added collection '%s'", name)
 	return c
 }
