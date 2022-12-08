@@ -4,8 +4,8 @@ import (
 	"reflect"
 )
 
-//Returns a map of request tags for each field in struct
-//e.g. GetStructTags(UserModel, 'ref') will return all the 'ref' values in a structs tags
+// Returns a map of request tags for each field in struct
+// e.g. GetStructTags(UserModel, 'ref') will return all the 'ref' values in a structs tags
 func GetStructTags(model interface{}, tagName string) map[string]string {
 	result := make(map[string]string)
 

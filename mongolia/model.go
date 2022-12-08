@@ -19,6 +19,7 @@ type Model interface {
 	// returns it (e.g convert string to objectId).
 	PrepareID(id interface{}) (interface{}, error)
 
+	IsNew() bool
 	GetID() interface{}
 	SetID(id interface{})
 
