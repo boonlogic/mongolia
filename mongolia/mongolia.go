@@ -57,12 +57,12 @@ func (odm *ODM) Connect() error {
 func (odm *ODM) GetCollection(name string) *Collection {
 	coll, ok := odm.colls[name]
 	if !ok {
-		return odm.CreateCollection(name)
+		return odm.CreateCollection(name, nil)
 	}
 	return &coll
 }
 
-func (odm *ODM) CreateCollection(name string, indexes *string) *Collection {
+func (odm *ODM) CreateCollection(name string, indexes interface{}) *Collection {
 	coll := odm.database.Collection(name)
 	c := &Collection{
 		name: name,
@@ -71,7 +71,8 @@ func (odm *ODM) CreateCollection(name string, indexes *string) *Collection {
 	}
 	odm.colls[name] = *c
 	if indexes != nil {
-		err = c.CreateIndexes(*indexes)
+		err := c.CreateIndexes(indexes)
+		log.Printf("Error Creating Indexes %v\n", err.Error())
 	}
 	log.Printf("added collection '%s'", name)
 	return c

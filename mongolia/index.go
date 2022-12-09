@@ -57,6 +57,7 @@ func convertToBool(setting interface{}) (bool, error) {
 }
 
 func parseIndex(indexmap map[string]interface{}) bson.D {
+
 	//parse keys
 	keys := make(bson.D, 0)
 	for field, value := range indexmap {
@@ -100,6 +101,8 @@ func convertJsonToIndex(jsonString []byte) ([]mongo.IndexModel, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Printf("Map: %v \n", jsonMap)
 	for name, jsonbody := range jsonMap {
 		//convert to map
 		body, ok := jsonbody.(map[string]interface{})
@@ -165,37 +168,41 @@ func validateIndexes(have []bson.D, want []mongo.IndexModel) error {
 
 func PopulateIndexes(ctx context.Context, coll *mongo.Collection, indexes interface{}) error {
 	fmt.Printf("PopulateIndexes... \n")
-	var indexmodel []mongo.IndexModel
+	var indexModel []mongo.IndexModel
+	var err error
 	switch v := indexes.(type) {
 	case []mongo.IndexModel:
-		indexmodel = indexes
+		indexModel = indexes.([]mongo.IndexModel)
 	case string:
-		if indexModel, err := convertJsonToIndex([]byte(indexes)); err != nil {
+		indexModel, err = convertJsonToIndex([]byte(indexes.(string)))
+		if err != nil {
 			return err
 		}
 	case []byte:
-		if indexModel, err := convertJsonToIndex(indexes); err != nil {
+		indexModel, err = convertJsonToIndex(indexes.([]byte))
+		if err != nil {
 			return err
 		}
 	default:
 		return errors.New(fmt.Sprintf("Unknown index type %v", v))
 	}
 
-	fmt.Printf("Requested Indexes: %v \n", indexmodel)
+	fmt.Printf("Requested Indexes: %v \n", indexModel)
 
 	//Get current indexes
-	if current, err := listIndexes(ctx, coll); err != nil {
+	current, err := listIndexes(ctx, coll)
+	if err != nil {
 		return err
 	}
 	fmt.Printf("Current Indexes: %v \n", current)
 
 	//Compare with existing
-	if err := validateIndexes(current, indexmodel); err != nil {
+	if err := validateIndexes(current, indexModel); err != nil {
 		return err
 	}
 
 	//Insert indexes
-	if err := insertIndexes(ctx, coll, indexmodel); err != nil {
+	if err := insertIndexes(ctx, coll, indexModel); err != nil {
 		return err
 	}
 	return nil

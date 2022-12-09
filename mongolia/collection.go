@@ -142,7 +142,24 @@ func (c *Collection) Delete(filter any, model Model) error {
 	return afterDeleteHooks(res, model)
 }
 
-func (c *Collection) DeleteByID(model Model) error {
+func (c *Collection) DeleteByID(id any, model Model) error {
+	idp, err := model.PrepareID(id)
+	if err != nil {
+		return err
+	}
+
+	if err := beforeDeleteHooks(model); err != nil {
+		return err
+	}
+	res, err := c.coll.DeleteOne(c.ctx, bson.M{"_id": idp})
+	if err != nil {
+		return err
+	}
+
+	return afterDeleteHooks(res, model)
+}
+
+func (c *Collection) DeleteModel(model Model) error {
 	if err := beforeDeleteHooks(model); err != nil {
 		return err
 	}

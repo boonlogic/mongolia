@@ -3,7 +3,7 @@ package test
 import (
 	"fmt"
 
-	"github.com/boonlogic/mongolia"
+	"github.com/boonlogic/mongolia/mongolia"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 

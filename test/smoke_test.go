@@ -2,8 +2,11 @@ package test
 
 import (
 	"fmt"
-	"github.com/boonlogic/mongolia"
+	"github.com/boonlogic/mongolia/mongolia"
 	"github.com/stretchr/testify/require"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/x/bsonx"
 	"testing"
 	"time"
 )
@@ -28,12 +31,16 @@ func Test(t *testing.T) {
 	require.NotNil(t, coll)
 
 	//Create Indexes
-	indexes := map[string]string{
-        "userId": "text",
-        "username": "text"
-    }
-    indexbytes, _ := json.Marshal(indexes)
-	coll.CreateIndexes(string(indexbytes))
+	indexes := []mongo.IndexModel{
+		{
+			Keys: bsonx.Doc{
+				{Key: "userId", Value: bsonx.String("text")},
+				{Key: "username", Value: bsonx.String("text")},
+			},
+			Options: options.Index().SetName("id_name").SetUnique(false),
+		},
+	}
+	coll.CreateIndexes(indexes)
 
 	// get the collection that was made
 	coll = odm.GetCollection("user")
@@ -111,7 +118,7 @@ func Test(t *testing.T) {
 
 	// delete user
 	// this deletes the DB document corresponding to user
-	err = coll.DeleteByID(user)
+	err = coll.DeleteModel(user)
 	require.Nil(t, err)
 
 	// user is gone

@@ -42,4 +42,7 @@ format-check: format ## Run the formatter and perform diff (for pipeline)
 	@git diff --exit-code; if [ $$? -ne 0 ]; then echo "format-check failed"; exit 1; fi; \
 	echo "*** format-check passed"
 
-
+go-check:
+ifndef GOPATH
+	$(error GOPATH is undefined)
+endif

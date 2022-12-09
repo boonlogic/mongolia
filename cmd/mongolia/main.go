@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/boonlogic/mongolia"
+	"github.com/boonlogic/mongolia/mongolia"
 )
 
 func main() {
