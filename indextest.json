@@ -1,0 +1,22 @@
+{
+	"timestamp_group": {
+        "keys": {
+            "createdTimeStamp": -1,
+            "groupID": "text",
+            "alarmState": "text"
+        },
+        "options": {
+            "unique": false
+        }
+    },
+	"asset_timestamp": {
+        "keys": {
+            "assetID": 1,
+            "timeStamp": -1
+        },
+        "options": {
+            "unique": true,
+            "TTL": 1200
+        }
+    }
+ }

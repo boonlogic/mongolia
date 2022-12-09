@@ -2,7 +2,6 @@ package mongolia
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -18,9 +17,8 @@ type Collection struct {
 	ctx  context.Context
 }
 
-func (c *Collection) CreateIndexes(indexes string) error {
-	fmt.Printf("TODO Create Indexes %v \n", indexes)
-	//return PopulateIndexes(c.coll, indexes)
+func (c *Collection) CreateIndexes(indexes interface{}) error {
+	return PopulateIndexes(c.ctx, c.coll, indexes)
 }
 
 func (c *Collection) Save(model Model) error {

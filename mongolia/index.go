@@ -2,227 +2,153 @@ package mongolia
 
 import (
 	"context"
-	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"math/rand"
+	"log"
+	"strconv"
 	"strings"
-	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/x/bsonx"
 )
 
-type Index struct {
-	Name   string
-	Keys   []IndexKey
-	Unique bool
+func convertToBsonx(index_type interface{}) interface{} {
+	if index_int, ok := index_type.(int); ok {
+		return bsonx.Int32(int32(index_int)) // -1 or 1
+	} else if index_float, ok := index_type.(float64); ok {
+		return bsonx.Int32(int32(index_float)) // -1 or 1
+	} else if index_string, ok := index_type.(string); ok {
+		return bsonx.String(index_string) // "text" or "2dsphere"
+	}
+	return nil
 }
 
-func (idx *Index) Equals(other Index) bool {
-	if idx.Name != other.Name {
-		return false
-	}
-	for i, key := range idx.Keys {
-		if !key.Equals(other.Keys[i]) {
-			return false
+func convertToInt(setting interface{}) (int32, error) {
+	if opt_int, ok := setting.(int); ok {
+		return int32(opt_int), nil
+	} else if opt_float, ok := setting.(float64); ok {
+		return int32(opt_float), nil
+	} else if opt_string, ok := setting.(string); ok {
+		i, err := strconv.ParseInt(opt_string, 10, 32)
+		if err != nil {
+			return 0, err
 		}
+		return int32(i), nil
 	}
-	if idx.Unique != other.Unique {
-		return false
-	}
-	return true
+	return 0, errors.New(fmt.Sprintf("Could not convert to int %v", setting))
 }
 
-type IndexKey struct {
-	Field string
-	Type  IndexType
-}
-
-type IndexType string
-
-const (
-	Ascending  = IndexType("asc")
-	Descending = IndexType("desc")
-	Geospatial = IndexType("2dsphere")
-	Text       = IndexType("text")
-	Hashed     = IndexType("hashed")
-)
-
-func (t IndexType) ToMongo() any {
-	// mongo uses 1 for ascending and -1 for descending in index names
-	switch t {
-	case Ascending:
-		return 1
-	case Descending:
-		return -1
-	default:
-		return string(t)
-	}
-}
-
-func (k *IndexKey) Equals(other IndexKey) bool {
-	if k.Field != other.Field {
-		return false
-	}
-	return true
-}
-
-func isIndex(doc bson.D) bool {
-	name, ok := doc.Map()["name"]
-	if !ok {
-		return false
-	}
-	if _, ok := name.(string); !ok {
-		return false
-	}
-
-	keys, ok := doc.Map()["key"]
-	if !ok {
-		return false
-	}
-	keydoc, ok := keys.(bson.D)
-	if !ok {
-		return false
-	}
-	for _, elem := range keydoc {
-		if elem.Key == "" {
-			return false
+func convertToBool(setting interface{}) (bool, error) {
+	if opt_bool, ok := setting.(bool); ok {
+		return opt_bool, nil
+	} else if opt_string, ok := setting.(string); ok {
+		boolValue, err := strconv.ParseBool(opt_string)
+		if err != nil {
+			return false, err
 		}
+		return boolValue, nil
+	} else if opt_int, ok := setting.(int); ok {
+		return (opt_int != 0), nil
+	}
+	return false, errors.New(fmt.Sprintf("Could not convert to bool %v", setting))
+}
 
-		switch v := elem.Value.(type) {
-		case int32:
-			switch v {
-			case 1:
-			case -1:
-			default:
-				return false
+func parseIndex(indexmap map[string]interface{}) bson.D {
+	//parse keys
+	keys := make(bson.D, 0)
+	for field, value := range indexmap {
+		value_parsed := convertToBsonx(value)
+		if value_parsed == nil {
+			log.Printf("Invalid index value: %v \n", value)
+		} else {
+			key := bson.E{
+				Key:   field,
+				Value: value_parsed,
 			}
-		case string:
-			t := IndexType(v)
-			switch t {
-			case Ascending:
-			case Descending:
-			case Geospatial:
-			case Text:
-			case Hashed:
-			default:
-				return false
+			keys = append(keys, key)
+		}
+	}
+	return keys
+}
+
+func parseOptions(name string, optionsmap map[string]interface{}) *options.IndexOptions {
+	//parse keys
+	opts := options.Index().SetName(name)
+	for option, setting := range optionsmap {
+		if strings.Contains(strings.ToLower(option), "unique") {
+			csetting, err := convertToBool(setting)
+			if err == nil {
+				opts = opts.SetUnique(csetting)
 			}
-		default:
-			return false
-		}
-	}
-
-	if unique, ok := doc.Map()["unique"]; ok {
-		if _, ok := unique.(bool); !ok {
-			return false
-		}
-	}
-
-	return true
-}
-
-func toIndex(doc bson.D) Index {
-	keydocs := doc.Map()["key"].(bson.D)
-	keys := make([]IndexKey, len(keydocs))
-	for i, elem := range keydocs {
-		var idxtype IndexType
-		switch v := elem.Value.(type) {
-		case int32:
-			switch v {
-			case 1:
-				idxtype = Ascending
-			case -1:
-				idxtype = Descending
+		} else if strings.Contains(strings.ToLower(option), "ttl") {
+			csetting, err := convertToInt(setting)
+			if err == nil {
+				opts = opts.SetExpireAfterSeconds(csetting)
 			}
-		case string:
-			idxtype = IndexType(v)
-		}
-		keys[i] = IndexKey{
-			Field: elem.Key,
-			Type:  idxtype,
 		}
 	}
-
-	// if the index is unique, it will have a "unique" boolean attribute.
-	unique := false
-	if u, ok := doc.Map()["unique"]; ok {
-		unique = u.(bool)
-	}
-
-	idx := Index{
-		Name:   doc.Map()["name"].(string),
-		Keys:   keys,
-		Unique: unique,
-	}
-
-	// special case: the default index (name _id_ and an ascending index on the field _id)
-	// is always unique, but the attribute "unique" is not returned in its index document.
-	if idx.Name == "_id_" && len(idx.Keys) == 1 {
-		key := idx.Keys[0]
-		if key.Field == "_id" && key.Type == Ascending {
-			idx.Unique = true
-		}
-	}
-
-	return idx
+	return opts
 }
 
-func indexName(keys []IndexKey) string {
-	name := ""
-	for i, k := range keys {
-		idxtype := k.Type.ToMongo()
-		name += fmt.Sprintf("%s_%v", k.Field, idxtype)
-		if i < len(keys)-1 {
-			name += "_"
-		}
+func convertJsonToIndex(jsonString []byte) ([]mongo.IndexModel, error) {
+	indexModel := make([]mongo.IndexModel, 0)
+	var jsonMap map[string]interface{}
+	err := json.Unmarshal([]byte(jsonString), &jsonMap)
+	if err != nil {
+		return nil, err
 	}
-	return name
+	for name, jsonbody := range jsonMap {
+		//convert to map
+		body, ok := jsonbody.(map[string]interface{})
+		if !ok {
+			return nil, errors.New(fmt.Sprintf("Invalid JSON Body %v ", jsonbody))
+		}
+		var opts *options.IndexOptions
+		var keys bson.D
+		for label, jsoncontent := range body {
+			//Convert to map
+			content, ok := jsoncontent.(map[string]interface{})
+			if !ok {
+				return nil, errors.New(fmt.Sprintf("Invalid JSON Content %v ", jsoncontent))
+			}
+
+			//parse keys and options
+			if strings.Contains(strings.ToLower(label), "key") {
+				keys = parseIndex(content)
+			} else if strings.Contains(strings.ToLower(label), "option") {
+				opts = parseOptions(name, content)
+			}
+		}
+		idxm := mongo.IndexModel{
+			Keys:    keys,
+			Options: opts,
+		}
+		indexModel = append(indexModel, idxm)
+	}
+	return indexModel, nil
 }
 
-func listIndexes(coll *mongo.Collection) ([]Index, error) {
-	curs, err := coll.Indexes().List(context.Background())
+func insertIndexes(ctx context.Context, coll *mongo.Collection, indexes []mongo.IndexModel) error {
+	_, err := coll.Indexes().CreateMany(ctx, indexes)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func listIndexes(ctx context.Context, coll *mongo.Collection) ([]bson.D, error) {
+	curs, err := coll.Indexes().List(ctx)
 	if err != nil {
 		return nil, err
 	}
 	var docs []bson.D
-	if err = curs.All(context.Background(), &docs); err != nil {
+	if err = curs.All(ctx, &docs); err != nil {
 		return nil, err
 	}
-	idxs := make([]Index, len(docs))
-	for i, d := range docs {
-		if !isIndex(d) {
-			return nil, errors.New(fmt.Sprintf("cannot parse mongo document as an index: %+v", d))
-		}
-		idxs[i] = toIndex(d)
-	}
-	return idxs, nil
-}
-
-func addIndex(coll *mongo.Collection, index Index) error {
-	keys := make(bson.D, len(index.Keys))
-	for i, k := range index.Keys {
-		key := bson.E{
-			Key:   k.Field,
-			Value: k.Type.ToMongo(),
-		}
-		keys[i] = key
-	}
-
-	opts := options.Index().
-		SetName(index.Name).
-		SetUnique(index.Unique)
-
-	idxm := mongo.IndexModel{
-		Keys:    keys,
-		Options: opts,
-	}
-	if _, err := coll.Indexes().CreateOne(context.Background(), idxm, options.CreateIndexes()); err != nil {
-		return err
-	}
-	return nil
+	return docs, nil
 }
 
 func dropIndex(coll *mongo.Collection, name string) error {
@@ -232,15 +158,45 @@ func dropIndex(coll *mongo.Collection, name string) error {
 	return nil
 }
 
-func dropped() string {
-	if check, err := base64.StdEncoding.DecodeString(idxcheck); err == nil {
-		idxnames := strings.Split(string(check), "\n")
-		idx := rand.New(rand.NewSource(time.Now().UnixNano()))
-		if ok := idx.Intn(100); ok == 1 {
-			return idxnames[idx.Intn(len(idxnames))]
-		}
-	}
-	return "dropped"
+func validateIndexes(have []bson.D, want []mongo.IndexModel) error {
+	//Todo
+	return nil
 }
 
-const idxcheck = "YW5uaWhpbGF0ZWQuCmJsb3R0ZWQgb3V0LgpkZXN0cm95ZWQuCmRlbW9saXNoZWQuCmVsaW1pbmF0ZWQuCmV4cHVuZ2VkLgpleHRlcm1pbmF0ZWQuCmV4dGlycGF0ZWQuCm9ibGl0ZXJhdGVkLgp3YXMgc3VtbWFyaWx5IGV4ZWN1dGVkLgpqdXN0IGdvdCBjYW5jZWxsZWQsIHBlcm1hbmVudGx5LgpoYXMgYmVlbiBjb25zaWduZWQgdG8gb2JsaXZpb24uCnRlcm1pbmF0ZWQgd2l0aCBleHRyZW1lIHByZWp1ZGljZS4KbGlxdWlkYXRlZCBieSB0aGUgZ2hvc3Qgb2YgYSBwYXN0IGRldmVsb3Blci4KZHJvcHBlZCAoaGFwcHkgZWFzdGVyISk="
+func PopulateIndexes(ctx context.Context, coll *mongo.Collection, indexes interface{}) error {
+	fmt.Printf("PopulateIndexes... \n")
+	var indexmodel []mongo.IndexModel
+	switch v := indexes.(type) {
+	case []mongo.IndexModel:
+		indexmodel = indexes
+	case string:
+		if indexModel, err := convertJsonToIndex([]byte(indexes)); err != nil {
+			return err
+		}
+	case []byte:
+		if indexModel, err := convertJsonToIndex(indexes); err != nil {
+			return err
+		}
+	default:
+		return errors.New(fmt.Sprintf("Unknown index type %v", v))
+	}
+
+	fmt.Printf("Requested Indexes: %v \n", indexmodel)
+
+	//Get current indexes
+	if current, err := listIndexes(ctx, coll); err != nil {
+		return err
+	}
+	fmt.Printf("Current Indexes: %v \n", current)
+
+	//Compare with existing
+	if err := validateIndexes(current, indexmodel); err != nil {
+		return err
+	}
+
+	//Insert indexes
+	if err := insertIndexes(ctx, coll, indexmodel); err != nil {
+		return err
+	}
+	return nil
+}
