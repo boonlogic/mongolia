@@ -1,4 +1,4 @@
-package main
+package test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"testing"
 	"time"
 
 	"github.com/boonlogic/mongolia"
@@ -24,7 +25,7 @@ type Episode struct {
 	Duration    int32              `bson:"duration,omitempty"`
 }
 
-func main() {
+func Test(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://127.0.0.1:27017"))

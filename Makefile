@@ -35,9 +35,6 @@ help: ## print this help
 	@grep -E '^[0-9a-zA-Z%_-]+:.*## .*$$' $(firstword $(MAKEFILE_LIST)) | \
 	awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-indextest:
-	go run indextest.go
-
 format: ## Run the formatter on go code
 	@cd $(GOPATH)/src/$(DEVPATH)/expert/mongolia && go fmt ./...
 
