@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/boonlogic/mongolia/mongolia"
 	"github.com/stretchr/testify/require"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
@@ -115,6 +116,14 @@ func Test(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, *found.UserID, *user.UserID)
 	require.Equal(t, *found.Username, *user.Username)
+
+	//Test Find operation
+	results := []User{}
+	filter := bson.M{"username": name2}
+	find_results, err := coll.Find(filter, &results, nil)
+	require.NotNil(t, find_results)
+	require.Equal(t, *results[0].UserID, tid2)
+	require.Equal(t, *results[0].Username, name2)
 
 	// delete user
 	// this deletes the DB document corresponding to user

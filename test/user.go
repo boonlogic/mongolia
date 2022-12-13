@@ -40,6 +40,11 @@ func (user *User) PreSave() error {
 	return nil
 }
 
+func (user *User) ValidateRead() error {
+	fmt.Println("VALIDATE READ")
+	return nil
+}
+
 func (user *User) GetTagReferences() map[string]string {
 	return mongolia.GetStructTags(*user, "ref")
 }

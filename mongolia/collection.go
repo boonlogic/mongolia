@@ -2,6 +2,9 @@ package mongolia
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"reflect"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -78,12 +81,19 @@ func (c *Collection) FindOne(filter any, model Model, opts *options.FindOneOptio
 	return nil
 }
 
-func (c *Collection) Find(filter any, models []Model, opts *options.FindOptions) (*FindResult, error) {
-	cursor, err := c.coll.Find(c.ctx, filter, opts)
-	if err != nil {
-		return nil, err
+// Validate read is not called here
+func (c *Collection) Find(filter any, results interface{}, opts *options.FindOptions) (*FindResult, error) {
+
+	//Verify Type
+	resultsValue := reflect.ValueOf(results)
+	if resultsValue.Kind() != reflect.Ptr {
+		return nil, errors.New(fmt.Sprintf("Expecting results to be a pointer to slice, instead got %v", resultsValue.Kind()))
+	}
+	if resultsValue.Elem().Kind() != reflect.Slice {
+		return nil, errors.New(fmt.Sprintf("Expecting results to be a pointer to slice, instead got %v", resultsValue.Kind()))
 	}
 
+	//Get document counts
 	var findResult FindResult
 	countopts := options.Count().SetMaxTime(2 * time.Second)
 	filtered, err := c.coll.CountDocuments(c.ctx, filter, countopts)
@@ -98,17 +108,31 @@ func (c *Collection) Find(filter any, models []Model, opts *options.FindOptions)
 	}
 	findResult.Collection = collection
 
-	err = cursor.All(c.ctx, models)
+	lookup, err := c.coll.CountDocuments(c.ctx, filter, countopts)
+	if err != nil {
+		return nil, err
+	}
+	findResult.Collection = lookup
+
+	cursor, err := c.coll.Find(c.ctx, filter, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, model := range models {
-		if err := model.ValidateRead(); err != nil {
-			return nil, err
-		}
+	err = cursor.All(c.ctx, results)
+	if err != nil {
+		return nil, err
 	}
-	findResult.Limit = int64(len(models))
+
+	//Get Length By Reflecting
+	modelType := reflect.ValueOf(results).Elem()
+	findResult.Limit = int64(modelType.Len())
+
+	// for _, temp := range modelType {
+	// 	if err := temp.ValidateRead(); err != nil {
+	// 		return nil, err
+	// 	}
+	// }
 
 	return &findResult, nil
 }
@@ -175,20 +199,26 @@ func (c *Collection) Drop() error {
 	return c.coll.Drop(c.ctx)
 }
 
-func (c *Collection) Aggregate(models []Model, pipeline any) error {
+// Run a mongo.Pipeline on a specific colleciton
+// Validate read is not called here
+func (c *Collection) Aggregate(results interface{}, pipeline any) error {
+
+	//Verify Type
+	resultsValue := reflect.ValueOf(results)
+	if resultsValue.Kind() != reflect.Ptr {
+		return errors.New(fmt.Sprintf("Expecting results to be a pointer to slice, instead got %v", resultsValue.Kind()))
+	}
+	if resultsValue.Elem().Kind() != reflect.Slice {
+		return errors.New(fmt.Sprintf("Expecting results to be a pointer to slice, instead got %v", resultsValue.Kind()))
+	}
+
 	cursor, err := c.coll.Aggregate(c.ctx, pipeline)
 	if err != nil {
 		return err
 	}
-	err = cursor.All(c.ctx, &models)
+	err = cursor.All(c.ctx, results)
 	if err != nil {
 		return err
-	}
-
-	for _, model := range models {
-		if err := model.ValidateRead(); err != nil {
-			return err
-		}
 	}
 
 	return nil
