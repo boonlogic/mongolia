@@ -25,7 +25,7 @@ func Test(t *testing.T) {
 
 	// start clean, end clean
 	odm.Drop()
-	defer odm.Drop()
+	//defer odm.Drop()
 
 	// adding a schema creates a corresponding collection
 	coll := odm.CreateCollection("user", nil)
@@ -41,7 +41,8 @@ func Test(t *testing.T) {
 			Options: options.Index().SetName("id_name").SetUnique(false),
 		},
 	}
-	coll.CreateIndexes(indexes)
+	err = coll.CreateIndexes(indexes)
+	require.Nil(t, err)
 
 	// get the collection that was made
 	coll = odm.GetCollection("user")
