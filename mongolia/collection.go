@@ -137,6 +137,15 @@ func (c *Collection) Find(filter any, results interface{}, opts *options.FindOpt
 	return &findResult, nil
 }
 
+// Retrieve unique values of field in collection, filter to limit scope
+func (c *Collection) Distinct(filter any, field string) (interface{}, error) {
+	results, err := c.coll.Distinct(c.ctx, field, filter)
+	if err != nil {
+		return nil, err
+	}
+	return results, nil
+}
+
 func (c *Collection) Update(model Model, opts *options.UpdateOptions) error {
 	if err := model.ValidateUpdate(); err != nil {
 		return err

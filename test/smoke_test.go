@@ -25,7 +25,7 @@ func Test(t *testing.T) {
 
 	// start clean, end clean
 	odm.Drop()
-	//defer odm.Drop()
+	defer odm.Drop()
 
 	// adding a schema creates a corresponding collection
 	coll := odm.CreateCollection("user", nil)
@@ -125,6 +125,28 @@ func Test(t *testing.T) {
 	require.NotNil(t, find_results)
 	require.Equal(t, *results[0].UserID, tid2)
 	require.Equal(t, *results[0].Username, name2)
+
+	//Add another user
+	uid3 := NewUserID()
+	name3 := "frank"
+	user3 := NewUser(uid3, name3)
+
+	// create the user in ODM
+	// this is where the document is actually added to collection "user")
+	err = coll.Create(user3, nil)
+	if err != nil {
+		fmt.Printf("error: %s\n", err)
+	}
+	require.Nil(t, err)
+	require.NotNil(t, user3)
+	require.Equal(t, uid3, *user3.UserID)
+	require.Equal(t, name3, *user3.Username)
+
+	//Test Distinct Operation
+	unique_usernames, err := coll.Distinct(bson.D{}, "username")
+	require.Nil(t, err)
+	require.NotNil(t, unique_usernames)
+	fmt.Printf("unique_usernames: %v \n", unique_usernames)
 
 	// delete user
 	// this deletes the DB document corresponding to user
