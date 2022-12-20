@@ -4,75 +4,75 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func beforeSaveHooks(model Model) error {
+func beforeSaveHooks(model Model) *Error {
 	if err := model.PreSave(); err != nil {
-		return err
+		return NewError(406, err)
 	}
 
 	return nil
 }
 
-func afterSaveHooks(model Model) error {
+func afterSaveHooks(model Model) *Error {
 	if err := model.PostSave(); err != nil {
-		return err
+		return NewError(406, err)
 	}
 	return nil
 }
 
-func beforeCreateHooks(model Model) error {
+func beforeCreateHooks(model Model) *Error {
 	if err := model.PreCreate(); err != nil {
-		return err
+		return NewError(406, err)
 	}
 	if err := model.PreSave(); err != nil {
-		return err
+		return NewError(406, err)
 	}
 
 	return nil
 }
 
-func afterCreateHooks(model Model) error {
+func afterCreateHooks(model Model) *Error {
 	if err := model.PostCreate(); err != nil {
-		return err
+		return NewError(406, err)
 	}
 	if err := model.PostSave(); err != nil {
-		return err
+		return NewError(406, err)
 	}
 	return nil
 }
 
-func beforeUpdateHooks(model Model) error {
+func beforeUpdateHooks(model Model) *Error {
 	if err := model.PreUpdate(); err != nil {
-		return err
+		return NewError(406, err)
 	}
 	if err := model.PreSave(); err != nil {
-		return err
+		return NewError(406, err)
 	}
 
 	return nil
 }
 
-func afterUpdateHooks(updateResult *mongo.UpdateResult, model Model) error {
+func afterUpdateHooks(updateResult *mongo.UpdateResult, model Model) *Error {
 	if err := model.PostUpdate(updateResult); err != nil {
-		return err
+		return NewError(406, err)
 	}
 	if err := model.PostSave(); err != nil {
-		return err
+		return NewError(406, err)
 	}
 
 	return nil
 }
 
-func beforeDeleteHooks(model Model) error {
+func beforeDeleteHooks(model Model) *Error {
 	if err := model.PreDelete(); err != nil {
-		return err
+		return NewError(406, err)
 	}
 
 	return nil
 }
 
-func afterDeleteHooks(deleteResult *mongo.DeleteResult, model Model) error {
+func afterDeleteHooks(deleteResult *mongo.DeleteResult, model Model) *Error {
 	if err := model.PostDelete(deleteResult); err != nil {
-		return err
+		return NewError(406, err)
 	}
 
 	return nil
