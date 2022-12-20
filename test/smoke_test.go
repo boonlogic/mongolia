@@ -57,7 +57,7 @@ func Test(t *testing.T) {
 	// this is where the document is actually added to collection "user")
 	err = coll.Create(user, nil)
 	if err != nil {
-		fmt.Printf("error: %s\n", err)
+		fmt.Printf("error: %s\n", err.ToString())
 	}
 	require.Nil(t, err)
 	require.NotNil(t, user)
@@ -88,7 +88,6 @@ func Test(t *testing.T) {
 	found = new(User)
 	q["userId"] = NewUserID()
 	coll.FindOne(q, found, nil)
-	require.Nil(t, err)
 	require.Empty(t, found)
 
 	// change the user struct in memory
@@ -122,6 +121,7 @@ func Test(t *testing.T) {
 	results := []User{}
 	filter := bson.M{"username": name2}
 	find_results, err := coll.Find(filter, &results, nil)
+	require.Nil(t, err)
 	require.NotNil(t, find_results)
 	require.Equal(t, *results[0].UserID, tid2)
 	require.Equal(t, *results[0].Username, name2)
@@ -135,7 +135,7 @@ func Test(t *testing.T) {
 	// this is where the document is actually added to collection "user")
 	err = coll.Create(user3, nil)
 	if err != nil {
-		fmt.Printf("error: %s\n", err)
+		fmt.Printf("error: %s\n", err.ToString())
 	}
 	require.Nil(t, err)
 	require.NotNil(t, user3)
@@ -156,6 +156,9 @@ func Test(t *testing.T) {
 	// user is gone
 	found = new(User)
 	err = coll.FindByID(user.GetID(), found)
+	if err != nil {
+		fmt.Printf("Expected Error: %s\n", err.ToString())
+	}
 	require.NotNil(t, err)
 	require.Empty(t, found)
 }

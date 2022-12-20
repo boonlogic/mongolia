@@ -42,12 +42,12 @@ func (odm *ODM) SetTimeout(timeout time.Duration) *ODM {
 	return odm
 }
 
-func (odm *ODM) Connect() error {
+func (odm *ODM) Connect() *Error {
 	odm.ctx, _ = context.WithTimeout(context.Background(), odm.timeout)
 	var err error
 	odm.client, err = mongo.Connect(odm.ctx, options.Client().ApplyURI(odm.URI))
 	if err != nil {
-		return err
+		return NewError(500, err)
 	}
 
 	odm.database = odm.client.Database(odm.DB)
@@ -72,7 +72,7 @@ func (odm *ODM) CreateCollection(name string, indexes interface{}) *Collection {
 	odm.colls[name] = *c
 	if indexes != nil {
 		err := c.CreateIndexes(indexes)
-		log.Printf("Error Creating Indexes %v\n", err.Error())
+		log.Printf("Error Creating Indexes: %v\n", err.ToString())
 	}
 	log.Printf("added collection '%s'", name)
 	return c
