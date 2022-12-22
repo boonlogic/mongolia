@@ -165,6 +165,23 @@ func (c *Collection) Update(model Model, opts *options.UpdateOptions) *Error {
 	return afterUpdateHooks(res, model)
 }
 
+func (c *Collection) UpdateFilter(filter any, model Model, opts *options.UpdateOptions) *Error {
+	if err := model.ValidateUpdate(); err != nil {
+		return NewError(406, err)
+	}
+
+	if err := beforeUpdateHooks(model); err != nil {
+		return err
+	}
+
+	res, err := c.coll.UpdateOne(c.ctx, filter, bson.M{"$set": model}, opts)
+	if err != nil {
+		return NewError(400, err)
+	}
+
+	return afterUpdateHooks(res, model)
+}
+
 func (c *Collection) Delete(filter any, model Model) *Error {
 	if err := beforeDeleteHooks(model); err != nil {
 		return err
