@@ -126,7 +126,6 @@ func validateIndexes(current []bson.D, requested []mongo.IndexModel) error {
 }
 
 func PopulateIndexes(ctx context.Context, coll *mongo.Collection, indexes interface{}) error {
-	fmt.Printf("PopulateIndexes... \n")
 	var indexModel []mongo.IndexModel
 	var err error
 	switch v := indexes.(type) {

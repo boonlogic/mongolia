@@ -72,7 +72,9 @@ func (odm *ODM) CreateCollection(name string, indexes interface{}) *Collection {
 	odm.colls[name] = *c
 	if indexes != nil {
 		err := c.CreateIndexes(indexes)
-		log.Printf("Error Creating Indexes: %v\n", err.ToString())
+		if err != nil {
+			log.Printf("Error Creating Indexes: %v\n", err.ToString())
+		}
 	}
 	log.Printf("added collection '%s'", name)
 	return c
