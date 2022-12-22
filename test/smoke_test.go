@@ -84,6 +84,8 @@ func Test(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, found.GetID(), user.GetID())
 
+	fmt.Printf("FindOne: %v \n", *found)
+
 	// fail to find a user with FindOne
 	found = new(User)
 	q["userId"] = NewUserID()
@@ -117,15 +119,6 @@ func Test(t *testing.T) {
 	require.Equal(t, *found.UserID, *user.UserID)
 	require.Equal(t, *found.Username, *user.Username)
 
-	//Test Find operation
-	results := []User{}
-	filter := bson.M{"username": name2}
-	find_results, err := coll.Find(filter, &results, nil)
-	require.Nil(t, err)
-	require.NotNil(t, find_results)
-	require.Equal(t, *results[0].UserID, tid2)
-	require.Equal(t, *results[0].Username, name2)
-
 	//Add another user
 	uid3 := NewUserID()
 	name3 := "frank"
@@ -141,6 +134,16 @@ func Test(t *testing.T) {
 	require.NotNil(t, user3)
 	require.Equal(t, uid3, *user3.UserID)
 	require.Equal(t, name3, *user3.Username)
+
+	//Test Find operation
+	results := []User{}
+	filter := bson.M{}
+	find_results, err := coll.Find(filter, &results, nil)
+	require.Nil(t, err)
+	require.NotNil(t, find_results)
+	require.Equal(t, len(results), 2)
+
+	fmt.Printf("Find: %v \n", results)
 
 	//Test Distinct Operation
 	unique_usernames, err := coll.Distinct(bson.D{}, "username")
