@@ -153,7 +153,7 @@ func Test(t *testing.T) {
 
 	// delete user
 	// this deletes the DB document corresponding to user
-	err = coll.DeleteModel(user)
+	err = coll.Delete(user)
 	require.Nil(t, err)
 
 	// user is gone
@@ -164,4 +164,10 @@ func Test(t *testing.T) {
 	}
 	require.NotNil(t, err)
 	require.Empty(t, found)
+
+	// delete other user
+	// this deletes the DB document corresponding to name3
+	query := bson.M{"username": name3}
+	err = coll.DeleteOne(query, user3)
+	require.Nil(t, err)
 }

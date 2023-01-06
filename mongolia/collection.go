@@ -165,7 +165,7 @@ func (c *Collection) Update(model Model, opts *options.UpdateOptions) *Error {
 	return afterUpdateHooks(res, model)
 }
 
-func (c *Collection) UpdateFilter(filter any, model Model, opts *options.UpdateOptions) *Error {
+func (c *Collection) UpdateOne(filter any, model Model, opts *options.UpdateOptions) *Error {
 	if err := model.ValidateUpdate(); err != nil {
 		return NewError(406, err)
 	}
@@ -182,11 +182,11 @@ func (c *Collection) UpdateFilter(filter any, model Model, opts *options.UpdateO
 	return afterUpdateHooks(res, model)
 }
 
-func (c *Collection) Delete(filter any, model Model) *Error {
+func (c *Collection) Delete(model Model) *Error {
 	if err := beforeDeleteHooks(model); err != nil {
 		return err
 	}
-	res, err := c.coll.DeleteOne(c.ctx, filter)
+	res, err := c.coll.DeleteOne(c.ctx, bson.M{"_id": model.GetID()})
 	if err != nil {
 		return NewError(400, err)
 	}
@@ -211,11 +211,11 @@ func (c *Collection) DeleteByID(id any, model Model) *Error {
 	return afterDeleteHooks(res, model)
 }
 
-func (c *Collection) DeleteModel(model Model) *Error {
+func (c *Collection) DeleteOne(filter any, model Model) *Error {
 	if err := beforeDeleteHooks(model); err != nil {
 		return err
 	}
-	res, err := c.coll.DeleteOne(c.ctx, bson.M{"_id": model.GetID()})
+	res, err := c.coll.DeleteOne(c.ctx, filter)
 	if err != nil {
 		return NewError(400, err)
 	}
