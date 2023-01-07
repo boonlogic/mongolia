@@ -182,6 +182,15 @@ func (c *Collection) UpdateOne(filter any, model Model, opts *options.UpdateOpti
 	return afterUpdateHooks(res, model)
 }
 
+func (c *Collection) UpdateSet(filter any, update any, opts *options.UpdateOptions) *Error {
+	_, err := c.coll.UpdateOne(c.ctx, filter, update, opts)
+	if err != nil {
+		return NewError(400, err)
+	}
+
+	return nil
+}
+
 func (c *Collection) Delete(model Model) *Error {
 	if err := beforeDeleteHooks(model); err != nil {
 		return err
