@@ -11,7 +11,6 @@ import (
 
 type ODM struct {
 	URI, DB  string
-	ctx      context.Context
 	client   *mongo.Client
 	database *mongo.Database
 	colls    map[string]Collection
@@ -43,9 +42,9 @@ func (odm *ODM) SetTimeout(timeout time.Duration) *ODM {
 }
 
 func (odm *ODM) Connect() *Error {
-	odm.ctx, _ = context.WithTimeout(context.Background(), odm.timeout)
+	ctx, _ := context.WithTimeout(context.Background(), odm.timeout)
 	var err error
-	odm.client, err = mongo.Connect(odm.ctx, options.Client().ApplyURI(odm.URI))
+	odm.client, err = mongo.Connect(ctx, options.Client().ApplyURI(odm.URI))
 	if err != nil {
 		return NewError(500, err)
 	}
@@ -65,9 +64,9 @@ func (odm *ODM) GetCollection(name string) *Collection {
 func (odm *ODM) CreateCollection(name string, indexes interface{}) *Collection {
 	coll := odm.database.Collection(name)
 	c := &Collection{
-		name: name,
-		coll: coll,
-		ctx:  odm.ctx,
+		name:    name,
+		coll:    coll,
+		timeout: odm.timeout,
 	}
 	odm.colls[name] = *c
 	if indexes != nil {
@@ -81,11 +80,11 @@ func (odm *ODM) CreateCollection(name string, indexes interface{}) *Collection {
 }
 
 func (odm *ODM) Disconnect() {
-	odm.client.Disconnect(odm.ctx)
+	odm.client.Disconnect(context.Background())
 }
 
 // Drop deletes all ODM data.
 // It fails if ODM is not ephemeral.
 func (odm *ODM) Drop() {
-	odm.database.Drop(odm.ctx)
+	odm.database.Drop(context.Background())
 }

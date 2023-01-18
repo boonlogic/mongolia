@@ -14,13 +14,14 @@ import (
 // Collection exposes CRUD operations for Model, while disallowing
 // operations that would cause a document to violate the Schema.
 type Collection struct {
-	name string
-	coll *mongo.Collection
-	ctx  context.Context
+	name    string
+	coll    *mongo.Collection
+	timeout time.Duration
 }
 
 func (c *Collection) CreateIndexes(indexes interface{}) *Error {
-	if err := PopulateIndexes(c.ctx, c.coll, indexes); err != nil {
+	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
+	if err := PopulateIndexes(ctx, c.coll, indexes); err != nil {
 		return NewError(503, err)
 	}
 	return nil
@@ -47,7 +48,8 @@ func (c *Collection) Create(model Model, opts *options.InsertOneOptions) *Error 
 		return err
 	}
 
-	res, err := c.coll.InsertOne(c.ctx, model, opts)
+	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
+	res, err := c.coll.InsertOne(ctx, model, opts)
 	if err != nil {
 		return NewError(400, err)
 	}
@@ -64,7 +66,8 @@ func (c *Collection) FindByID(id any, model Model) *Error {
 		return NewError(406, err)
 	}
 
-	if err := c.coll.FindOne(c.ctx, bson.D{{"_id", idp}}).Decode(model); err != nil {
+	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
+	if err := c.coll.FindOne(ctx, bson.D{{"_id", idp}}).Decode(model); err != nil {
 		return NewError(404, err)
 	}
 	if err := model.ValidateRead(); err != nil {
@@ -74,7 +77,8 @@ func (c *Collection) FindByID(id any, model Model) *Error {
 }
 
 func (c *Collection) FindOne(filter any, model Model, opts *options.FindOneOptions) *Error {
-	if err := c.coll.FindOne(c.ctx, filter, opts).Decode(model); err != nil {
+	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
+	if err := c.coll.FindOne(ctx, filter, opts).Decode(model); err != nil {
 		return NewError(404, err)
 	}
 	if err := model.ValidateRead(); err != nil {
@@ -95,33 +99,35 @@ func (c *Collection) Find(filter any, results interface{}, opts *options.FindOpt
 		return nil, NewErrorString(406, fmt.Sprintf("Expecting results to be a pointer to slice, instead got %v", resultsValue.Kind()))
 	}
 
+	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
+
 	//Get document counts
 	var findResult FindResult
 	countopts := options.Count().SetMaxTime(2 * time.Second)
-	filtered, err := c.coll.CountDocuments(c.ctx, filter, countopts)
+	filtered, err := c.coll.CountDocuments(ctx, filter, countopts)
 	if err != nil {
 		return nil, NewError(404, err)
 	}
 	findResult.Filtered = filtered
 
-	collection, err := c.coll.CountDocuments(c.ctx, bson.D{}, countopts)
+	collection, err := c.coll.CountDocuments(ctx, bson.D{}, countopts)
 	if err != nil {
 		return nil, NewError(404, err)
 	}
 	findResult.Collection = collection
 
-	lookup, err := c.coll.CountDocuments(c.ctx, filter, countopts)
+	lookup, err := c.coll.CountDocuments(ctx, filter, countopts)
 	if err != nil {
 		return nil, NewError(404, err)
 	}
 	findResult.Collection = lookup
 
-	cursor, err := c.coll.Find(c.ctx, filter, opts)
+	cursor, err := c.coll.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, NewError(404, err)
 	}
 
-	err = cursor.All(c.ctx, results)
+	err = cursor.All(ctx, results)
 	if err != nil {
 		return nil, NewError(404, err)
 	}
@@ -141,7 +147,8 @@ func (c *Collection) Find(filter any, results interface{}, opts *options.FindOpt
 
 // Retrieve unique values of field in collection, filter to limit scope
 func (c *Collection) Distinct(filter any, field string) (interface{}, *Error) {
-	results, err := c.coll.Distinct(c.ctx, field, filter)
+	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
+	results, err := c.coll.Distinct(ctx, field, filter)
 	if err != nil {
 		return nil, NewError(404, err)
 	}
@@ -157,7 +164,8 @@ func (c *Collection) Update(model Model, opts *options.UpdateOptions) *Error {
 		return err
 	}
 
-	res, err := c.coll.UpdateOne(c.ctx, bson.M{"_id": model.GetID()}, bson.M{"$set": model}, opts)
+	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
+	res, err := c.coll.UpdateOne(ctx, bson.M{"_id": model.GetID()}, bson.M{"$set": model}, opts)
 	if err != nil {
 		return NewError(400, err)
 	}
@@ -174,7 +182,8 @@ func (c *Collection) UpdateOne(filter any, model Model, opts *options.UpdateOpti
 		return err
 	}
 
-	res, err := c.coll.UpdateOne(c.ctx, filter, bson.M{"$set": model}, opts)
+	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
+	res, err := c.coll.UpdateOne(ctx, filter, bson.M{"$set": model}, opts)
 	if err != nil {
 		return NewError(400, err)
 	}
@@ -183,7 +192,8 @@ func (c *Collection) UpdateOne(filter any, model Model, opts *options.UpdateOpti
 }
 
 func (c *Collection) UpdateSet(filter any, update any, opts *options.UpdateOptions) *Error {
-	_, err := c.coll.UpdateOne(c.ctx, filter, update, opts)
+	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
+	_, err := c.coll.UpdateOne(ctx, filter, update, opts)
 	if err != nil {
 		return NewError(400, err)
 	}
@@ -195,7 +205,9 @@ func (c *Collection) Delete(model Model) *Error {
 	if err := beforeDeleteHooks(model); err != nil {
 		return err
 	}
-	res, err := c.coll.DeleteOne(c.ctx, bson.M{"_id": model.GetID()})
+
+	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
+	res, err := c.coll.DeleteOne(ctx, bson.M{"_id": model.GetID()})
 	if err != nil {
 		return NewError(400, err)
 	}
@@ -212,7 +224,9 @@ func (c *Collection) DeleteByID(id any, model Model) *Error {
 	if err := beforeDeleteHooks(model); err != nil {
 		return err
 	}
-	res, err := c.coll.DeleteOne(c.ctx, bson.M{"_id": idp})
+
+	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
+	res, err := c.coll.DeleteOne(ctx, bson.M{"_id": idp})
 	if err != nil {
 		return NewError(400, err)
 	}
@@ -224,7 +238,9 @@ func (c *Collection) DeleteOne(filter any, model Model) *Error {
 	if err := beforeDeleteHooks(model); err != nil {
 		return err
 	}
-	res, err := c.coll.DeleteOne(c.ctx, filter)
+
+	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
+	res, err := c.coll.DeleteOne(ctx, filter)
 	if err != nil {
 		return NewError(400, err)
 	}
@@ -233,7 +249,7 @@ func (c *Collection) DeleteOne(filter any, model Model) *Error {
 }
 
 func (c *Collection) Drop() *Error {
-	if err := c.coll.Drop(c.ctx); err != nil {
+	if err := c.coll.Drop(context.Background()); err != nil {
 		return NewError(404, err)
 	}
 	return nil
@@ -252,11 +268,12 @@ func (c *Collection) Aggregate(results interface{}, pipeline any) *Error {
 		return NewErrorString(400, fmt.Sprintf("Expecting results to be a pointer to slice, instead got %v", resultsValue.Kind()))
 	}
 
-	cursor, err := c.coll.Aggregate(c.ctx, pipeline)
+	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
+	cursor, err := c.coll.Aggregate(ctx, pipeline)
 	if err != nil {
 		return NewError(404, err)
 	}
-	err = cursor.All(c.ctx, results)
+	err = cursor.All(ctx, results)
 	if err != nil {
 		return NewError(404, err)
 	}
