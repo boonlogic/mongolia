@@ -68,7 +68,10 @@ func (c *Collection) FindByID(id any, model Model) *Error {
 
 	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
 	if err := c.coll.FindOne(ctx, bson.D{{"_id", idp}}).Decode(model); err != nil {
-		return NewError(404, err)
+		if err == mongo.ErrNoDocuments {
+			return NewError(404, err)
+		}
+		return NewError(500, err)
 	}
 	if err := model.ValidateRead(); err != nil {
 		return NewError(406, err)
@@ -79,7 +82,24 @@ func (c *Collection) FindByID(id any, model Model) *Error {
 func (c *Collection) FindOne(filter any, model Model, opts *options.FindOneOptions) *Error {
 	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
 	if err := c.coll.FindOne(ctx, filter, opts).Decode(model); err != nil {
-		return NewError(404, err)
+		if err == mongo.ErrNoDocuments {
+			return NewError(404, err)
+		}
+		return NewError(500, err)
+	}
+	if err := model.ValidateRead(); err != nil {
+		return NewError(406, err)
+	}
+	return nil
+}
+
+func (c *Collection) FindOneAndUpdate(filter any, update any, model Model, opts *options.FindOneAndUpdateOptions) *Error {
+	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
+	if err := c.coll.FindOneAndUpdate(ctx, filter, update, opts).Decode(model); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return NewError(404, err)
+		}
+		return NewError(500, err)
 	}
 	if err := model.ValidateRead(); err != nil {
 		return NewError(406, err)
