@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"reflect"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -47,8 +48,14 @@ func matchSingleIndex(current bson.D, requested bsonx.Doc) error {
 
 		for _, current_index := range current {
 			if current_index.Key == requested_index.Key {
-				if current_index.Value != requested_index.Value {
-					return errors.New(fmt.Sprintf("Requested Index Field %v has a value (%v )that does not match existing value (%v)", requested_index.Key, requested_index.Value, current_index.Value))
+				request_val, int_requested := requested_index.Value.Int32OK() //check if requested can be converted to int32 first
+				if reflect.TypeOf(current_index.Value).Kind() == reflect.Int32 && int_requested {
+					// 1 or -1 are int32 and the requested bsonx needs to be converted to compare with current
+					if current_index.Value != request_val {
+						return errors.New(fmt.Sprintf("Requested Index Field %v has a value (%v) that does not match existing value (%v)", requested_index.Key, request_val, current_index.Value))
+					}
+				} else if current_index.Value != requested_index.Value {
+					return errors.New(fmt.Sprintf("Requested Index Field %v has a value (%v) that does not match existing value (%v)", requested_index.Key, requested_index.Value, current_index.Value))
 				}
 			}
 		}
