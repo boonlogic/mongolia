@@ -19,6 +19,18 @@ type Collection struct {
 	timeout time.Duration
 }
 
+// Validate read is not called here
+func (c *Collection) CountDocuments(filter any, opts *options.CountOptions) (int64, *Error) {
+	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
+
+	//Get document counts
+	count, err := c.coll.CountDocuments(ctx, filter, opts)
+	if err != nil {
+		return int64(0), NewError(404, err)
+	}
+	return int64(count), nil
+}
+
 func (c *Collection) CreateIndexes(indexes interface{}) *Error {
 	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
 	if err := PopulateIndexes(ctx, c.coll, indexes); err != nil {
@@ -51,6 +63,9 @@ func (c *Collection) Create(model Model, opts *options.InsertOneOptions) *Error 
 	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
 	res, err := c.coll.InsertOne(ctx, model, opts)
 	if err != nil {
+		if mongo.IsDuplicateKeyError(err) {
+			return NewError(400, err)
+		}
 		return NewError(400, err)
 	}
 
@@ -108,7 +123,34 @@ func (c *Collection) FindOneAndUpdate(filter any, update any, model Model, opts 
 }
 
 // Validate read is not called here
-func (c *Collection) Find(filter any, results interface{}, opts *options.FindOptions) (*FindResult, *Error) {
+func (c *Collection) Find(filter any, results interface{}, opts *options.FindOptions) *Error {
+
+	//Verify Type
+	resultsValue := reflect.ValueOf(results)
+	if resultsValue.Kind() != reflect.Ptr {
+		return NewErrorString(406, fmt.Sprintf("Expecting results to be a pointer to slice, instead got %v", resultsValue.Kind()))
+	}
+	if resultsValue.Elem().Kind() != reflect.Slice {
+		return NewErrorString(406, fmt.Sprintf("Expecting results to be a pointer to slice, instead got %v", resultsValue.Kind()))
+	}
+
+	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
+
+	cursor, err := c.coll.Find(ctx, filter, opts)
+	if err != nil {
+		return NewError(404, err)
+	}
+
+	err = cursor.All(ctx, results)
+	if err != nil {
+		return NewError(404, err)
+	}
+
+	return nil
+}
+
+// Validate read is not called here
+func (c *Collection) FindWithResults(filter any, results interface{}, opts *options.FindOptions) (*FindResult, *Error) {
 
 	//Verify Type
 	resultsValue := reflect.ValueOf(results)
@@ -266,6 +308,16 @@ func (c *Collection) DeleteOne(filter any, model Model) *Error {
 	}
 
 	return afterDeleteHooks(res, model)
+}
+
+func (c *Collection) DeleteMany(filter any) *Error {
+	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
+	_, err := c.coll.DeleteMany(ctx, filter)
+	if err != nil {
+		return NewError(400, err)
+	}
+
+	return nil
 }
 
 func (c *Collection) Drop() *Error {

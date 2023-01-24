@@ -138,12 +138,18 @@ func Test(t *testing.T) {
 	//Test Find operation
 	results := []User{}
 	filter := bson.M{}
-	find_results, err := coll.Find(filter, &results, nil)
+	err = coll.Find(filter, &results, nil)
 	require.Nil(t, err)
-	require.NotNil(t, find_results)
 	require.Equal(t, len(results), 2)
 
 	fmt.Printf("Find: %v \n", results)
+
+	//Test FindWithResults operation
+	resultswith := []User{}
+	find_results, err := coll.FindWithResults(bson.M{}, &resultswith, nil)
+	require.Nil(t, err)
+	require.NotNil(t, find_results)
+	require.Equal(t, find_results.Filtered, int64(2))
 
 	//Test Distinct Operation
 	unique_usernames, err := coll.Distinct(bson.D{}, "username")
@@ -169,5 +175,9 @@ func Test(t *testing.T) {
 	// this deletes the DB document corresponding to name3
 	query := bson.M{"username": name3}
 	err = coll.DeleteOne(query, user3)
+	require.Nil(t, err)
+
+	//delete many
+	err = coll.DeleteMany(bson.M{})
 	require.Nil(t, err)
 }
