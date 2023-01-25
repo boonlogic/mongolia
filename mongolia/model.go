@@ -1,6 +1,10 @@
 package mongolia
 
 import (
+	"errors"
+	"fmt"
+
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -32,6 +36,7 @@ type Model interface {
 
 	PreCreate() error
 	PostCreate() error
+	PrePartialUpdate(update any) error
 	PreUpdate() error
 	PostUpdate(result *mongo.UpdateResult) error
 	PreSave() error
@@ -67,6 +72,16 @@ func (m *DefaultModel) PreCreate() error {
 
 func (m *DefaultModel) PostCreate() error {
 	return nil
+}
+
+func (m *DefaultModel) PrePartialUpdate(update any) error {
+	switch v := update.(type) {
+	case bson.D:
+		BSONUpdateAtHook(update.(bson.D))
+		return nil
+	default:
+		return errors.New(fmt.Sprintf("Unknown Partial Update Type %v \n", v))
+	}
 }
 
 func (m *DefaultModel) PreUpdate() error {

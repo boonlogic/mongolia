@@ -109,6 +109,10 @@ func (c *Collection) FindOne(filter any, model Model, opts *options.FindOneOptio
 }
 
 func (c *Collection) FindOneAndUpdate(filter any, update any, model Model, opts *options.FindOneAndUpdateOptions) *Error {
+	if err := beforePartialUpdateHooks(update, model); err != nil {
+		return err
+	}
+
 	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
 	if err := c.coll.FindOneAndUpdate(ctx, filter, update, opts).Decode(model); err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -253,7 +257,10 @@ func (c *Collection) UpdateOne(filter any, model Model, opts *options.UpdateOpti
 	return afterUpdateHooks(res, model)
 }
 
-func (c *Collection) UpdateSet(filter any, update any, opts *options.UpdateOptions) *Error {
+func (c *Collection) UpdateSet(filter any, update any, model Model, opts *options.UpdateOptions) *Error {
+	if err := beforePartialUpdateHooks(update, model); err != nil {
+		return err
+	}
 	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
 	_, err := c.coll.UpdateOne(ctx, filter, update, opts)
 	if err != nil {

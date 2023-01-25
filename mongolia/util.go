@@ -1,7 +1,9 @@
 package mongolia
 
 import (
+	"go.mongodb.org/mongo-driver/bson"
 	"reflect"
+	"time"
 )
 
 func ValidateFindResults[T Model](findResults []T) error {
@@ -37,4 +39,23 @@ func GetStructTags(model interface{}, tagName string) map[string]string {
 	}
 
 	return result
+}
+
+func BSONUpdateAtHook(update bson.D) {
+	var setElements bson.D
+	for i, elem := range update {
+		if elem.Key == "$set" {
+			updateset := true
+			setElements = elem.Value.(bson.D)
+			for _, set := range setElements {
+				if set.Key == "updatedAt" {
+					updateset = false
+				}
+			}
+			if updateset {
+				setElements = append(setElements, bson.E{"updatedAt", time.Now().UTC()})
+			}
+			update[i].Value = setElements
+		}
+	}
 }

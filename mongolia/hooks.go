@@ -40,6 +40,14 @@ func afterCreateHooks(model Model) *Error {
 	return nil
 }
 
+func beforePartialUpdateHooks(update any, model Model) *Error {
+	if err := model.PrePartialUpdate(update); err != nil {
+		return NewError(406, err)
+	}
+
+	return nil
+}
+
 func beforeUpdateHooks(model Model) *Error {
 	if err := model.PreUpdate(); err != nil {
 		return NewError(406, err)

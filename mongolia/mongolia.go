@@ -79,6 +79,45 @@ func (odm *ODM) CreateCollection(name string, indexes interface{}) *Collection {
 	return c
 }
 
+func (odm *ODM) CreateTimeSeriesCollection(name string, opts *options.TimeSeriesOptions, indexes interface{}) *Collection {
+	//Specify a timeseries collection
+	col_opts := options.CreateCollection().SetTimeSeriesOptions(opts)
+	ctx, _ := context.WithTimeout(context.Background(), odm.timeout)
+	err := odm.database.CreateCollection(ctx, name, col_opts)
+	exists := false
+	if err != nil {
+		switch e := err.(type) {
+		case mongo.CommandError: // raises a specific CommandError if collection already exists
+			if e.Name == "NamespaceExists" {
+				exists = true
+			} else {
+				log.Printf("Error Creating TimeSeries %v\n", err.Error())
+				return nil
+			}
+		default:
+			log.Printf("Error Creating TimeSeries %v\n", err.Error())
+			return nil
+		}
+	}
+
+	c := &Collection{
+		name:    name,
+		coll:    odm.database.Collection(name),
+		timeout: odm.timeout,
+	}
+	odm.colls[name] = *c
+	if indexes != nil {
+		err := c.CreateIndexes(indexes)
+		if err != nil {
+			log.Printf("Error Creating Indexes: %v\n", err.ToString())
+		}
+	}
+	if !exists {
+		log.Printf("added collection '%s'", name)
+	}
+	return c
+}
+
 func (odm *ODM) Disconnect() {
 	odm.client.Disconnect(context.Background())
 }
