@@ -79,6 +79,8 @@ func (m *DefaultModel) PrePartialUpdate(update any) error {
 	case bson.D:
 		BSONUpdateAtHook(update.(bson.D))
 		return nil
+	case mongo.Pipeline:
+		return nil //Assume the user knows what they're doing
 	default:
 		return errors.New(fmt.Sprintf("Unknown Partial Update Type %v \n", v))
 	}
