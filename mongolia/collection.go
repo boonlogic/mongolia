@@ -281,6 +281,11 @@ func (c *Collection) Delete(model Model) *Error {
 		return NewError(400, err)
 	}
 
+	//throw error if no documents found
+	if res.DeletedCount == 0 {
+		return NewErrorString(404, "Document Not Found")
+	}
+
 	return afterDeleteHooks(res, model)
 }
 
@@ -300,6 +305,11 @@ func (c *Collection) DeleteByID(id any, model Model) *Error {
 		return NewError(400, err)
 	}
 
+	//throw error if no documents found
+	if res.DeletedCount == 0 {
+		return NewErrorString(404, "Document Not Found")
+	}
+
 	return afterDeleteHooks(res, model)
 }
 
@@ -312,6 +322,11 @@ func (c *Collection) DeleteOne(filter any, model Model) *Error {
 	res, err := c.coll.DeleteOne(ctx, filter)
 	if err != nil {
 		return NewError(400, err)
+	}
+
+	//throw error if no documents found
+	if res.DeletedCount == 0 {
+		return NewErrorString(404, "Document Not Found")
 	}
 
 	return afterDeleteHooks(res, model)

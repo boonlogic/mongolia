@@ -1,6 +1,7 @@
 package mongolia
 
 import (
+	"errors"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -32,7 +33,11 @@ type IDField struct {
 func (f *IDField) PrepareID(id any) (any, error) {
 	switch v := id.(type) {
 	case string:
-		return primitive.ObjectIDFromHex(v)
+		result, err := primitive.ObjectIDFromHex(v)
+		if err != nil {
+			return result, errors.New("Invalid ID")
+		}
+		return result, nil
 	default:
 		return v, nil // assume it is an objectId
 	}
