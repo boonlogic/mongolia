@@ -78,7 +78,7 @@ func (c *Collection) Create(model Model, opts *options.InsertOneOptions) *Error 
 func (c *Collection) FindByID(id any, model Model) *Error {
 	idp, err := model.PrepareID(id)
 	if err != nil {
-		return NewError(406, err)
+		return NewError(400, err)
 	}
 
 	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
@@ -283,7 +283,7 @@ func (c *Collection) Delete(model Model) *Error {
 
 	//throw error if no documents found
 	if res.DeletedCount == 0 {
-		return NewErrorString(404, "Document Not Found")
+		return NewErrorString(404, "mongo: no documents in result")
 	}
 
 	return afterDeleteHooks(res, model)
@@ -292,7 +292,7 @@ func (c *Collection) Delete(model Model) *Error {
 func (c *Collection) DeleteByID(id any, model Model) *Error {
 	idp, err := model.PrepareID(id)
 	if err != nil {
-		return NewError(406, err)
+		return NewError(400, err)
 	}
 
 	if err := beforeDeleteHooks(model); err != nil {
@@ -307,7 +307,7 @@ func (c *Collection) DeleteByID(id any, model Model) *Error {
 
 	//throw error if no documents found
 	if res.DeletedCount == 0 {
-		return NewErrorString(404, "Document Not Found")
+		return NewErrorString(404, "mongo: no documents in result")
 	}
 
 	return afterDeleteHooks(res, model)
@@ -326,7 +326,7 @@ func (c *Collection) DeleteOne(filter any, model Model) *Error {
 
 	//throw error if no documents found
 	if res.DeletedCount == 0 {
-		return NewErrorString(404, "Document Not Found")
+		return NewErrorString(404, "mongo: no documents in result")
 	}
 
 	return afterDeleteHooks(res, model)
