@@ -236,6 +236,10 @@ func (c *Collection) Update(model Model, opts *options.UpdateOptions) *Error {
 		return NewError(400, err)
 	}
 
+	if res.MatchedCount == 0 && res.UpsertedCount == 0 {
+		return NewErrorString(404, "mongo: no documents in result")
+	}
+
 	return afterUpdateHooks(res, model)
 }
 
@@ -254,6 +258,10 @@ func (c *Collection) UpdateOne(filter any, model Model, opts *options.UpdateOpti
 		return NewError(400, err)
 	}
 
+	if res.MatchedCount == 0 && res.UpsertedCount == 0 {
+		return NewErrorString(404, "mongo: no documents in result")
+	}
+
 	return afterUpdateHooks(res, model)
 }
 
@@ -262,9 +270,13 @@ func (c *Collection) UpdateSet(filter any, update any, model Model, opts *option
 		return err
 	}
 	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
-	_, err := c.coll.UpdateOne(ctx, filter, update, opts)
+	res, err := c.coll.UpdateOne(ctx, filter, update, opts)
 	if err != nil {
 		return NewError(400, err)
+	}
+
+	if res.MatchedCount == 0 && res.UpsertedCount == 0 {
+		return NewErrorString(404, "mongo: no documents in result")
 	}
 
 	return nil
