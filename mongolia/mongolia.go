@@ -2,6 +2,7 @@ package mongolia
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -44,9 +45,18 @@ func (odm *ODM) SetTimeout(timeout time.Duration) *ODM {
 func (odm *ODM) Connect() *Error {
 	ctx, _ := context.WithTimeout(context.Background(), odm.timeout)
 	var err error
+
+	// create mongo connection
 	odm.client, err = mongo.Connect(ctx, options.Client().ApplyURI(odm.URI))
 	if err != nil {
 		return NewError(500, err)
+	}
+
+	// test connection
+	err = odm.client.Ping(ctx, nil)
+	if err != nil {
+		errorString := fmt.Sprintf("Error unable to connect to Mongo: %v", err)
+		return NewErrorString(500, errorString)
 	}
 
 	odm.database = odm.client.Database(odm.DB)
