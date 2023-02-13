@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	validation "github.com/go-ozzo/ozzo-validation"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -55,7 +56,11 @@ func (m *DefaultModel) Validate() error {
 }
 
 func (m *DefaultModel) ValidateRead() error {
-	return m.Validate()
+	return validation.ValidateStruct(m,
+		validation.Field(&m.ID, validation.Required),
+		validation.Field(&m.CreatedAt, validation.Required),
+		validation.Field(&m.UpdatedAt, validation.Required),
+	)
 }
 
 func (m *DefaultModel) ValidateCreate() error {
