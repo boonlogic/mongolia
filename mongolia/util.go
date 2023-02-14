@@ -59,3 +59,50 @@ func BSONUpdateAtHook(update bson.D) {
 		}
 	}
 }
+
+//Generic conversion to map
+func CastToMap(update any) map[string]any {
+	bsonmap := make(map[string]any)
+	if update != nil {
+		switch update.(type) {
+		case bson.D:
+			return CastBDToMap(update.(bson.D))
+		case bson.M:
+			return CastBMToMap(update.(bson.M))
+		default:
+			return bsonmap
+		}
+	}
+	return bsonmap
+}
+
+//Convert bson.D Set to map for easy validation
+func CastBDToMap(update bson.D) map[string]any {
+	bsonmap := make(map[string]any)
+	for _, elem := range update {
+		if elem.Key == "$set" {
+			setElements := elem.Value.(bson.D)
+			for _, set := range setElements {
+				bsonmap[set.Key] = set.Value
+			}
+		}
+	}
+	return bsonmap
+}
+
+//Convert bson.M Set to map for easy validation
+func CastBMToMap(update bson.M) map[string]any {
+	bsonmap := make(map[string]any)
+	for key, value := range update {
+		bsonmap[key] = value
+	}
+	return bsonmap
+}
+
+func CastMapToDB(update map[string]any) bson.D {
+	set := bson.D{}
+	for key, value := range update {
+		set = append(set, bson.E{key, value})
+	}
+	return bson.D{{"$set", set}}
+}

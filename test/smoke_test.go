@@ -106,7 +106,7 @@ func Test(t *testing.T) {
 
 	// call Update to make the DB document match the struct
 	// this updates the associated document in collection "user"
-	err = coll.Update(user, nil)
+	err = coll.UpdateModel(user, nil)
 	require.Nil(t, err)
 
 	// calling Update does not change the struct in memory
@@ -156,6 +156,39 @@ func Test(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, unique_usernames)
 	fmt.Printf("unique_usernames: %v \n", unique_usernames)
+
+	//Test partial update
+	partialusername := "stopupdating"
+	partialuid := NewUserID()
+	partialfilter := bson.D{{"username", name2}}
+	partialupdate := make(map[string]any)
+	partialupdate["username"] = partialusername
+	partialupdate["userId"] = partialuid
+	opts := options.Update().SetUpsert(false)
+	temp := User{}
+	err = coll.Update(partialfilter, partialupdate, &temp, opts)
+	require.Nil(t, err)
+
+	//Test Find operation
+	refind := new(User)
+	findfilter := bson.D{{"username", partialusername}}
+	err = coll.FindOne(findfilter, refind, nil)
+	require.Nil(t, err)
+	require.Equal(t, *refind.UserID, partialuid)
+
+	//Now test our validator (this should fail)
+	//badusername
+	badusername := ""
+	badfilter := bson.D{{"username", partialusername}}
+	badupdate := bson.D{{"$set", bson.D{
+		{"username", badusername},
+	},
+	}}
+	err = coll.Update(badfilter, badupdate, &temp, opts)
+	require.NotNil(t, err)
+	if err != nil {
+		fmt.Printf("Expected Validate Error: %s\n", err.ToString())
+	}
 
 	// delete user
 	// this deletes the DB document corresponding to user

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -109,7 +110,11 @@ func (c *Collection) FindOne(filter any, model Model, opts *options.FindOneOptio
 }
 
 func (c *Collection) FindOneAndUpdate(filter any, update any, model Model, opts *options.FindOneAndUpdateOptions) *Error {
-	if err := beforePartialUpdateHooks(update, model); err != nil {
+	if err := model.ValidateUpdate(update); err != nil {
+		return NewError(406, err)
+	}
+
+	if err := beforeUpdateHooks(update, model); err != nil {
 		return err
 	}
 
@@ -221,17 +226,25 @@ func (c *Collection) Distinct(filter any, field string) (interface{}, *Error) {
 	return results, nil
 }
 
-func (c *Collection) Update(model Model, opts *options.UpdateOptions) *Error {
-	if err := model.ValidateUpdate(); err != nil {
+//Partial update
+func (c *Collection) Update(filter any, update any, model Model, opts *options.UpdateOptions) *Error {
+	//Handle map based updates
+	switch update.(type) {
+	case map[string]any:
+		bson_update := CastMapToDB(update.(map[string]any))
+		return c.Update(filter, bson_update, model, opts)
+	}
+
+	if err := model.ValidateUpdate(update); err != nil {
 		return NewError(406, err)
 	}
 
-	if err := beforeUpdateHooks(model); err != nil {
+	if err := beforeUpdateHooks(update, model); err != nil {
 		return err
 	}
 
 	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
-	res, err := c.coll.UpdateOne(ctx, bson.M{"_id": model.GetID()}, bson.M{"$set": model}, opts)
+	res, err := c.coll.UpdateOne(ctx, filter, update, opts)
 	if err != nil {
 		return NewError(400, err)
 	}
@@ -240,17 +253,20 @@ func (c *Collection) Update(model Model, opts *options.UpdateOptions) *Error {
 		return NewErrorString(404, "mongo: no documents in result")
 	}
 
-	return afterUpdateHooks(res, model)
+	return nil
 }
 
-func (c *Collection) UpdateOne(filter any, model Model, opts *options.UpdateOptions) *Error {
-	if err := model.ValidateUpdate(); err != nil {
+//Update entire model from filter
+func (c *Collection) UpdateModel(model Model, opts *options.UpdateOptions) *Error {
+	if err := model.ValidateUpdateModel(); err != nil {
 		return NewError(406, err)
 	}
 
-	if err := beforeUpdateHooks(model); err != nil {
+	if err := beforeUpdateHooks(nil, model); err != nil {
 		return err
 	}
+
+	filter := bson.D{{"_id", model.GetID().(primitive.ObjectID)}}
 
 	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
 	res, err := c.coll.UpdateOne(ctx, filter, bson.M{"$set": model}, opts)
@@ -263,23 +279,7 @@ func (c *Collection) UpdateOne(filter any, model Model, opts *options.UpdateOpti
 	}
 
 	return afterUpdateHooks(res, model)
-}
 
-func (c *Collection) UpdateSet(filter any, update any, model Model, opts *options.UpdateOptions) *Error {
-	if err := beforePartialUpdateHooks(update, model); err != nil {
-		return err
-	}
-	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
-	res, err := c.coll.UpdateOne(ctx, filter, update, opts)
-	if err != nil {
-		return NewError(400, err)
-	}
-
-	if res.MatchedCount == 0 && res.UpsertedCount == 0 {
-		return NewErrorString(404, "mongo: no documents in result")
-	}
-
-	return nil
 }
 
 func (c *Collection) Delete(model Model) *Error {

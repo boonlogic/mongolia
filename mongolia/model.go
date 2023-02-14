@@ -1,9 +1,6 @@
 package mongolia
 
 import (
-	"errors"
-	"fmt"
-
 	validation "github.com/go-ozzo/ozzo-validation"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -33,13 +30,14 @@ type Model interface {
 	Validate() error
 	ValidateRead() error
 	ValidateCreate() error
-	ValidateUpdate() error
+	ValidateUpdate(update any) error
+	ValidateUpdateModel() error
 
 	PreCreate() error
 	PostCreate() error
-	PrePartialUpdate(update any) error
-	PreUpdate() error
-	PostUpdate(result *mongo.UpdateResult) error
+	PreUpdate(update any) error
+	PreUpdateModel() error
+	PostUpdateModel(result *mongo.UpdateResult) error
 	PreSave() error
 	PostSave() error
 	PreDelete() error
@@ -67,7 +65,13 @@ func (m *DefaultModel) ValidateCreate() error {
 	return m.Validate()
 }
 
-func (m *DefaultModel) ValidateUpdate() error {
+//validation when doing a partial update
+func (m *DefaultModel) ValidateUpdate(update any) error {
+	return nil
+}
+
+//validation when updating entire model
+func (m *DefaultModel) ValidateUpdateModel() error {
 	return m.Validate()
 }
 
@@ -79,23 +83,24 @@ func (m *DefaultModel) PostCreate() error {
 	return nil
 }
 
-func (m *DefaultModel) PrePartialUpdate(update any) error {
-	switch v := update.(type) {
+//Hook when doing a partial update
+func (m *DefaultModel) PreUpdate(update any) error {
+	switch update.(type) {
 	case bson.D:
 		BSONUpdateAtHook(update.(bson.D))
 		return nil
-	case mongo.Pipeline:
-		return nil //Assume the user knows what they're doing
 	default:
-		return errors.New(fmt.Sprintf("Unknown Partial Update Type %v \n", v))
+		return nil
 	}
 }
 
-func (m *DefaultModel) PreUpdate() error {
+// Hooks when pre updating entire model
+func (m *DefaultModel) PreUpdateModel() error {
 	return nil
 }
 
-func (m *DefaultModel) PostUpdate(result *mongo.UpdateResult) error {
+// Hooks when post updating entire model
+func (m *DefaultModel) PostUpdateModel(result *mongo.UpdateResult) error {
 	return nil
 }
 

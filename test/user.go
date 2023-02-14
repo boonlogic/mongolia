@@ -1,6 +1,7 @@
 package test
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/boonlogic/mongolia/mongolia"
@@ -42,6 +43,34 @@ func (user *User) PreSave() error {
 
 func (user *User) ValidateRead() error {
 	fmt.Println("VALIDATE READ")
+	return nil
+}
+
+func (user *User) PreUpdate(update any) error {
+	err := user.DefaultModel.PreUpdate(update)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (user *User) ValidateUpdate(update any) error {
+	updatemap := mongolia.CastToMap(update)
+	//if updating the username, make sure it meets our spec
+	val, exists := updatemap["username"]
+	if exists {
+		username := val.(string)
+		if len(username) > 64 || len(username) < 1 {
+			return errors.New("Invalid username given")
+		}
+	}
+	fmt.Println("VALIDATE UPDATE")
+	return nil
+}
+
+//validation when updating entire model
+func (user *User) ValidateUpdateModel() error {
+	fmt.Println("VALIDATE UPDATE MODEL")
 	return nil
 }
 
