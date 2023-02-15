@@ -40,6 +40,7 @@ type Model interface {
 	PostUpdateModel(result *mongo.UpdateResult) error
 	PreSave() error
 	PostSave() error
+	PostRead() error
 	PreDelete() error
 	PostDelete(result *mongo.DeleteResult) error
 }
@@ -109,6 +110,10 @@ func (m *DefaultModel) PreSave() error {
 }
 
 func (m *DefaultModel) PostSave() error {
+	return nil
+}
+
+func (m *DefaultModel) PostRead() error {
 	return nil
 }
 

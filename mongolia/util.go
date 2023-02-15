@@ -2,6 +2,7 @@ package mongolia
 
 import (
 	"go.mongodb.org/mongo-driver/bson"
+	"encoding/json"
 	"reflect"
 	"time"
 )
@@ -43,19 +44,22 @@ func GetStructTags(model interface{}, tagName string) map[string]string {
 
 func BSONUpdateAtHook(update bson.D) {
 	var setElements bson.D
+	ok := false
 	for i, elem := range update {
 		if elem.Key == "$set" {
-			updateset := true
-			setElements = elem.Value.(bson.D)
-			for _, set := range setElements {
-				if set.Key == "updatedAt" {
-					updateset = false
+			//If this is a bson.D set
+			if setElements, ok = elem.Value.(bson.D); ok {
+				updateset := true
+				for _, set := range setElements {
+					if set.Key == "updatedAt" {
+						updateset = false
+					}
 				}
+				if updateset {
+					setElements = append(setElements, bson.E{"updatedAt", time.Now().UTC()})
+				}
+				update[i].Value = setElements
 			}
-			if updateset {
-				setElements = append(setElements, bson.E{"updatedAt", time.Now().UTC()})
-			}
-			update[i].Value = setElements
 		}
 	}
 }
@@ -81,9 +85,14 @@ func CastBDToMap(update bson.D) map[string]any {
 	bsonmap := make(map[string]any)
 	for _, elem := range update {
 		if elem.Key == "$set" {
-			setElements := elem.Value.(bson.D)
-			for _, set := range setElements {
-				bsonmap[set.Key] = set.Value
+			if setElements, ok := elem.Value.(bson.D); ok {
+				for _, set := range setElements {
+					bsonmap[set.Key] = set.Value
+				}
+			} else if modelElements, ok := elem.Value.(Model); ok {
+				//if its a full model set do this
+				jsonmap := StructToMap(modelElements)
+				return jsonmap
 			}
 		}
 	}
@@ -105,4 +114,11 @@ func CastMapToDB(update map[string]any) bson.D {
 		set = append(set, bson.E{key, value})
 	}
 	return bson.D{{"$set", set}}
+}
+
+func StructToMap(model any) map[string]any {
+	var model_map map[string]any
+	model_json, _ := json.Marshal(model)
+	json.Unmarshal(model_json, &model_map)
+	return model_map
 }

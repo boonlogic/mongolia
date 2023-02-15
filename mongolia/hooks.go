@@ -19,6 +19,13 @@ func afterSaveHooks(model Model) *Error {
 	return nil
 }
 
+func afterReadHooks(model Model) *Error {
+	if err := model.PostRead(); err != nil {
+		return NewError(406, err)
+	}
+	return nil
+}
+
 func beforeCreateHooks(model Model) *Error {
 	if err := model.PreCreate(); err != nil {
 		return NewError(406, err)

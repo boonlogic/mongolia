@@ -92,7 +92,7 @@ func (c *Collection) FindByID(id any, model Model) *Error {
 	if err := model.ValidateRead(); err != nil {
 		return NewError(406, err)
 	}
-	return nil
+	return afterReadHooks(model)
 }
 
 func (c *Collection) FindOne(filter any, model Model, opts *options.FindOneOptions) *Error {
@@ -106,7 +106,7 @@ func (c *Collection) FindOne(filter any, model Model, opts *options.FindOneOptio
 	if err := model.ValidateRead(); err != nil {
 		return NewError(406, err)
 	}
-	return nil
+	return afterReadHooks(model)
 }
 
 func (c *Collection) FindOneAndUpdate(filter any, update any, model Model, opts *options.FindOneAndUpdateOptions) *Error {
@@ -128,10 +128,10 @@ func (c *Collection) FindOneAndUpdate(filter any, update any, model Model, opts 
 	if err := model.ValidateRead(); err != nil {
 		return NewError(406, err)
 	}
-	return nil
+	return afterReadHooks(model)
 }
 
-// Validate read is not called here
+// Validate/hooks read is not called here
 func (c *Collection) Find(filter any, results interface{}, opts *options.FindOptions) *Error {
 
 	//Verify Type
@@ -158,7 +158,7 @@ func (c *Collection) Find(filter any, results interface{}, opts *options.FindOpt
 	return nil
 }
 
-// Validate read is not called here
+// Validate/hooks read is not called here
 func (c *Collection) FindWithResults(filter any, results interface{}, opts *options.FindOptions) (*FindResult, *Error) {
 
 	//Verify Type
@@ -256,8 +256,15 @@ func (c *Collection) Update(filter any, update any, model Model, opts *options.U
 	return nil
 }
 
-//Update entire model from filter
+//Update entire model
 func (c *Collection) UpdateModel(model Model, opts *options.UpdateOptions) *Error {
+	filter := bson.D{{"_id", model.GetID().(primitive.ObjectID)}}
+
+	return c.UpdateModelQuery(filter, model, opts)
+}
+
+//Update entire model from filter
+func (c *Collection) UpdateModelQuery(filter any, model Model, opts *options.UpdateOptions) *Error {
 	if err := model.ValidateUpdateModel(); err != nil {
 		return NewError(406, err)
 	}
@@ -265,8 +272,6 @@ func (c *Collection) UpdateModel(model Model, opts *options.UpdateOptions) *Erro
 	if err := beforeUpdateHooks(nil, model); err != nil {
 		return err
 	}
-
-	filter := bson.D{{"_id", model.GetID().(primitive.ObjectID)}}
 
 	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
 	res, err := c.coll.UpdateOne(ctx, filter, bson.M{"$set": model}, opts)
