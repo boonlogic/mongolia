@@ -19,6 +19,13 @@ func afterSaveHooks(model Model) *Error {
 	return nil
 }
 
+func afterReadHooks(model Model) *Error {
+	if err := model.PostRead(); err != nil {
+		return NewError(406, err)
+	}
+	return nil
+}
+
 func beforeCreateHooks(model Model) *Error {
 	if err := model.PreCreate(); err != nil {
 		return NewError(406, err)
@@ -40,33 +47,30 @@ func afterCreateHooks(model Model) *Error {
 	return nil
 }
 
-func beforePartialUpdateHooks(update any, model Model) *Error {
-	if err := model.PrePartialUpdate(update); err != nil {
-		return NewError(406, err)
-	}
-
-	return nil
-}
-
-func beforeUpdateHooks(model Model) *Error {
-	if err := model.PreUpdate(); err != nil {
-		return NewError(406, err)
-	}
-	if err := model.PreSave(); err != nil {
-		return NewError(406, err)
+func beforeUpdateHooks(update any, model Model) *Error {
+	if update == nil {
+		if err := model.PreUpdateModel(); err != nil {
+			return NewError(406, err)
+		}
+		if err := model.PreSave(); err != nil {
+			return NewError(406, err)
+		}
+	} else {
+		if err := model.PreUpdate(update); err != nil {
+			return NewError(406, err)
+		}
 	}
 
 	return nil
 }
 
 func afterUpdateHooks(updateResult *mongo.UpdateResult, model Model) *Error {
-	if err := model.PostUpdate(updateResult); err != nil {
+	if err := model.PostUpdateModel(updateResult); err != nil {
 		return NewError(406, err)
 	}
 	if err := model.PostSave(); err != nil {
 		return NewError(406, err)
 	}
-
 	return nil
 }
 
