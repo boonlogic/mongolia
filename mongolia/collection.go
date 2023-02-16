@@ -172,40 +172,39 @@ func (c *Collection) FindWithResults(filter any, results interface{}, opts *opti
 
 	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
 
-	//Get document counts
-	var findResult FindResult
-	countopts := options.Count().SetMaxTime(2 * time.Second)
-	filtered, err := c.coll.CountDocuments(ctx, filter, countopts)
+	//cursor find
+	cursor, err := c.coll.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, NewError(404, err)
 	}
-	findResult.Filtered = filtered
 
+	//Parse results
+	cerr := cursor.All(ctx, results)
+	if cerr != nil {
+		return nil, NewError(404, cerr)
+	}
+
+	//Get document counts
+	var findResult FindResult
+	slice_var := reflect.ValueOf(results).Elem()
+	findResult.Filtered = int64(slice_var.Len())
+
+	countopts := options.Count().SetMaxTime(2 * time.Second)
 	collection, err := c.coll.CountDocuments(ctx, bson.D{}, countopts)
 	if err != nil {
 		return nil, NewError(404, err)
 	}
 	findResult.Collection = collection
 
-	lookup, err := c.coll.CountDocuments(ctx, filter, countopts)
-	if err != nil {
-		return nil, NewError(404, err)
-	}
-	findResult.Collection = lookup
-
-	cursor, err := c.coll.Find(ctx, filter, opts)
-	if err != nil {
-		return nil, NewError(404, err)
+	findResult.Skip = 0
+	if opts != nil && opts.Skip != nil {
+		findResult.Skip = *opts.Skip
 	}
 
-	err = cursor.All(ctx, results)
-	if err != nil {
-		return nil, NewError(404, err)
+	findResult.Limit = collection
+	if opts != nil && opts.Limit != nil {
+		findResult.Limit = *opts.Limit
 	}
-
-	//Get Length By Reflecting
-	modelType := reflect.ValueOf(results).Elem()
-	findResult.Limit = int64(modelType.Len())
 
 	// for _, temp := range modelType {
 	// 	if err := temp.ValidateRead(); err != nil {
