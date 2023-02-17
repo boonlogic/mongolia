@@ -1,8 +1,8 @@
 package mongolia
 
 import (
-	"go.mongodb.org/mongo-driver/bson"
 	"encoding/json"
+	"go.mongodb.org/mongo-driver/bson"
 	"reflect"
 	"time"
 )
@@ -64,7 +64,7 @@ func BSONUpdateAtHook(update bson.D) {
 	}
 }
 
-//Generic conversion to map
+// Generic conversion to map
 func CastToMap(update any) map[string]any {
 	bsonmap := make(map[string]any)
 	if update != nil {
@@ -80,7 +80,7 @@ func CastToMap(update any) map[string]any {
 	return bsonmap
 }
 
-//Convert bson.D Set to map for easy validation
+// Convert bson.D Set to map for easy validation
 func CastBDToMap(update bson.D) map[string]any {
 	bsonmap := make(map[string]any)
 	for _, elem := range update {
@@ -99,7 +99,7 @@ func CastBDToMap(update bson.D) map[string]any {
 	return bsonmap
 }
 
-//Convert bson.M Set to map for easy validation
+// Convert bson.M Set to map for easy validation
 func CastBMToMap(update bson.M) map[string]any {
 	bsonmap := make(map[string]any)
 	for key, value := range update {

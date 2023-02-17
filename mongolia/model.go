@@ -66,12 +66,12 @@ func (m *DefaultModel) ValidateCreate() error {
 	return m.Validate()
 }
 
-//validation when doing a partial update
+// validation when doing a partial update
 func (m *DefaultModel) ValidateUpdate(update any) error {
 	return nil
 }
 
-//validation when updating entire model
+// validation when updating entire model
 func (m *DefaultModel) ValidateUpdateModel() error {
 	return m.Validate()
 }
@@ -84,7 +84,7 @@ func (m *DefaultModel) PostCreate() error {
 	return nil
 }
 
-//Hook when doing a partial update
+// Hook when doing a partial update
 func (m *DefaultModel) PreUpdate(update any) error {
 	switch update.(type) {
 	case bson.D:
