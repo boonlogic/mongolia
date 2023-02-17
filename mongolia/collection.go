@@ -254,7 +254,7 @@ func (c *Collection) Distinct(filter any, field string) (interface{}, *Error) {
 	return results, nil
 }
 
-//Partial update
+// Partial update
 func (c *Collection) Update(filter any, update any, model Model, opts *options.UpdateOptions) *Error {
 	//Handle map based updates
 	switch update.(type) {
@@ -284,14 +284,14 @@ func (c *Collection) Update(filter any, update any, model Model, opts *options.U
 	return nil
 }
 
-//Update entire model
+// Update entire model
 func (c *Collection) UpdateModel(model Model, opts *options.UpdateOptions) *Error {
 	filter := bson.D{{"_id", model.GetID().(primitive.ObjectID)}}
 
 	return c.UpdateModelQuery(filter, model, opts)
 }
 
-//Update entire model from filter
+// Update entire model from filter
 func (c *Collection) UpdateModelQuery(filter any, model Model, opts *options.UpdateOptions) *Error {
 	if err := model.ValidateUpdateModel(); err != nil {
 		return NewError(406, err)

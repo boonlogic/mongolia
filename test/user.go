@@ -66,7 +66,7 @@ func (user *User) ValidateUpdate(update any) error {
 	return nil
 }
 
-//validation when updating entire model
+// validation when updating entire model
 func (user *User) ValidateUpdateModel() error {
 	return nil
 }
