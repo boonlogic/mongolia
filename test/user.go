@@ -2,7 +2,6 @@ package test
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/boonlogic/mongolia/mongolia"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -26,8 +25,6 @@ func (user *User) PreCreate() error {
 	if err := user.DefaultModel.PreCreate(); err != nil {
 		return err
 	}
-
-	fmt.Println("PRECREATE HOOK")
 	return nil
 }
 
@@ -37,12 +34,10 @@ func (user *User) PreSave() error {
 		return err
 	}
 
-	fmt.Println("PRESAVE HOOK")
 	return nil
 }
 
-func (user *User) ValidateRead() error {
-	fmt.Println("VALIDATE READ")
+func (user *User) PostRead() error {
 	return nil
 }
 
@@ -51,6 +46,10 @@ func (user *User) PreUpdate(update any) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (user *User) Validate() error {
 	return nil
 }
 
@@ -64,13 +63,15 @@ func (user *User) ValidateUpdate(update any) error {
 			return errors.New("Invalid username given")
 		}
 	}
-	fmt.Println("VALIDATE UPDATE")
 	return nil
 }
 
 //validation when updating entire model
 func (user *User) ValidateUpdateModel() error {
-	fmt.Println("VALIDATE UPDATE MODEL")
+	return nil
+}
+
+func (user *User) ValidateRead() error {
 	return nil
 }
 

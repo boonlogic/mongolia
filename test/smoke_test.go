@@ -136,16 +136,14 @@ func Test(t *testing.T) {
 	require.Equal(t, name3, *user3.Username)
 
 	//Test Find operation
-	results := []User{}
+	results := []*User{}
 	filter := bson.M{}
 	err = coll.Find(filter, &results, nil)
 	require.Nil(t, err)
 	require.Equal(t, len(results), 2)
 
-	fmt.Printf("Find: %v \n", results)
-
 	//Test FindWithResults operation
-	resultswith := []User{}
+	resultswith := []*User{}
 	find_results, err := coll.FindWithResults(bson.M{}, &resultswith, nil)
 	require.Nil(t, err)
 	require.NotNil(t, find_results)

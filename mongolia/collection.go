@@ -155,6 +155,24 @@ func (c *Collection) Find(filter any, results interface{}, opts *options.FindOpt
 		return NewError(404, err)
 	}
 
+	//Get Underlying struct
+	pointerSliceModel := resultsValue.Elem()
+	sliceLength := pointerSliceModel.Len()
+
+	//Attempt to cast each element of the slice back to model so we can call the validate function
+	for i := 0; i < sliceLength; i++ {
+		modelVar, ok := pointerSliceModel.Index(i).Interface().(Model)
+		if ok {
+			//If this pointer can be cast to model, we can call hooks
+			if err := modelVar.ValidateRead(); err != nil {
+				return NewError(406, err)
+			}
+			if merr := afterReadHooks(modelVar); merr != nil {
+				return merr
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -184,10 +202,13 @@ func (c *Collection) FindWithResults(filter any, results interface{}, opts *opti
 		return nil, NewError(404, cerr)
 	}
 
+	//Get Underlying struct
+	pointerSliceModel := resultsValue.Elem()
+	sliceLength := pointerSliceModel.Len()
+
 	//Get document counts
 	var findResult FindResult
-	slice_var := reflect.ValueOf(results).Elem()
-	findResult.Filtered = int64(slice_var.Len())
+	findResult.Filtered = int64(sliceLength)
 
 	countopts := options.Count().SetMaxTime(2 * time.Second)
 	collection, err := c.coll.CountDocuments(ctx, bson.D{}, countopts)
@@ -206,11 +227,19 @@ func (c *Collection) FindWithResults(filter any, results interface{}, opts *opti
 		findResult.Limit = *opts.Limit
 	}
 
-	// for _, temp := range modelType {
-	// 	if err := temp.ValidateRead(); err != nil {
-	// 		return nil, err
-	// 	}
-	// }
+	//Attempt to cast each element of the slice back to model so we can call the validate function
+	for i := 0; i < sliceLength; i++ {
+		modelVar, ok := pointerSliceModel.Index(i).Interface().(Model)
+		if ok {
+			//If this pointer can be cast to model, we can call hooks
+			if err := modelVar.ValidateRead(); err != nil {
+				return nil, NewError(406, err)
+			}
+			if merr := afterReadHooks(modelVar); merr != nil {
+				return nil, merr
+			}
+		}
+	}
 
 	return &findResult, nil
 }
@@ -386,6 +415,24 @@ func (c *Collection) Aggregate(results interface{}, pipeline any) *Error {
 	err = cursor.All(ctx, results)
 	if err != nil {
 		return NewError(404, err)
+	}
+
+	//Get Underlying struct
+	pointerSliceModel := resultsValue.Elem()
+	sliceLength := pointerSliceModel.Len()
+
+	//Attempt to cast each element of the slice back to model so we can call the validate function
+	for i := 0; i < sliceLength; i++ {
+		modelVar, ok := pointerSliceModel.Index(i).Interface().(Model)
+		if ok {
+			//If this pointer can be cast to model, we can call hooks
+			if err := modelVar.ValidateRead(); err != nil {
+				return NewError(406, err)
+			}
+			if merr := afterReadHooks(modelVar); merr != nil {
+				return merr
+			}
+		}
 	}
 
 	return nil
