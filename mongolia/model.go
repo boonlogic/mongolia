@@ -38,8 +38,6 @@ type Model interface {
 	PreUpdate(update any) error
 	PreUpdateModel() error
 	PostUpdateModel(result *mongo.UpdateResult) error
-	PreSave() error
-	PostSave() error
 	PostRead() error
 	PreDelete() error
 	PostDelete(result *mongo.DeleteResult) error
@@ -97,19 +95,11 @@ func (m *DefaultModel) PreUpdate(update any) error {
 
 // Hooks when pre updating entire model
 func (m *DefaultModel) PreUpdateModel() error {
-	return nil
+	return m.DateFields.PreUpdateModel()
 }
 
 // Hooks when post updating entire model
 func (m *DefaultModel) PostUpdateModel(result *mongo.UpdateResult) error {
-	return nil
-}
-
-func (m *DefaultModel) PreSave() error {
-	return m.DateFields.PreSave()
-}
-
-func (m *DefaultModel) PostSave() error {
 	return nil
 }
 

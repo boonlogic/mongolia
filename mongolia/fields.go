@@ -16,10 +16,11 @@ type DateFields struct {
 
 func (f *DateFields) PreCreate() error {
 	f.CreatedAt = time.Now().UTC()
+	f.UpdatedAt = time.Now().UTC()
 	return nil
 }
 
-func (f *DateFields) PreSave() error {
+func (f *DateFields) PreUpdateModel() error {
 	f.UpdatedAt = time.Now().UTC()
 	return nil
 }

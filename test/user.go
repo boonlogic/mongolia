@@ -28,15 +28,6 @@ func (user *User) PreCreate() error {
 	return nil
 }
 
-func (user *User) PreSave() error {
-	// Call the DefaultModel saving hook
-	if err := user.DefaultModel.PreSave(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (user *User) PostRead() error {
 	return nil
 }
@@ -47,6 +38,10 @@ func (user *User) PreUpdate(update any) error {
 		return err
 	}
 	return nil
+}
+
+func (user *User) PreUpdateModel() error {
+	return user.DefaultModel.PreUpdateModel()
 }
 
 func (user *User) Validate() error {

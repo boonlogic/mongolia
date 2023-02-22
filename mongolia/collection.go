@@ -40,18 +40,6 @@ func (c *Collection) CreateIndexes(indexes interface{}) *Error {
 	return nil
 }
 
-func (c *Collection) Save(model Model) *Error {
-	if err := model.ValidateRead(); err != nil {
-		return NewError(406, err)
-	}
-
-	if err := beforeSaveHooks(model); err != nil {
-		return err
-	}
-
-	return afterSaveHooks(model)
-}
-
 func (c *Collection) Create(model Model, opts *options.InsertOneOptions) *Error {
 	if err := model.ValidateCreate(); err != nil {
 		return NewError(406, err)
