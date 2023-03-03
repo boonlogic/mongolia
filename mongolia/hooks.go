@@ -39,10 +39,17 @@ func beforeUpdateHooks(update any, model Model) *Error {
 	return nil
 }
 
-func afterUpdateHooks(updateResult *mongo.UpdateResult, model Model) *Error {
-	if err := model.PostUpdateModel(updateResult); err != nil {
-		return NewError(406, err)
+func afterUpdateHooks(updateResult *mongo.UpdateResult, update any, model Model) *Error {
+	if update == nil {
+		if err := model.PostUpdateModel(updateResult); err != nil {
+			return NewError(406, err)
+		}
+	} else {
+		if err := model.PostUpdate(update, updateResult); err != nil {
+			return NewError(406, err)
+		}
 	}
+
 	return nil
 }
 

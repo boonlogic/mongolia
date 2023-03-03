@@ -204,9 +204,11 @@ func Test(t *testing.T) {
 
 	// delete other user
 	// this deletes the DB document corresponding to name3
+	deletedUser := &User{}
 	query := bson.M{"username": name3}
-	err = coll.DeleteOne(query, user3)
+	err = coll.DeleteOne(query, deletedUser)
 	require.Nil(t, err)
+	require.Equal(t, *deletedUser.Username, *user3.Username)
 
 	//delete many
 	err = coll.DeleteMany(bson.M{})

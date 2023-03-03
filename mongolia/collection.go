@@ -269,7 +269,7 @@ func (c *Collection) Update(filter any, update any, model Model, opts *options.U
 		return NewErrorString(404, "mongo: no documents in result")
 	}
 
-	return nil
+	return afterUpdateHooks(res, update, model)
 }
 
 // Update entire model
@@ -299,7 +299,7 @@ func (c *Collection) UpdateModelQuery(filter any, model Model, opts *options.Upd
 		return NewErrorString(404, "mongo: no documents in result")
 	}
 
-	return afterUpdateHooks(res, model)
+	return afterUpdateHooks(res, nil, model)
 
 }
 
@@ -328,41 +328,34 @@ func (c *Collection) DeleteByID(id any, model Model) *Error {
 		return NewError(400, err)
 	}
 
-	if err := beforeDeleteHooks(model); err != nil {
-		return err
-	}
-
-	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
-	res, err := c.coll.DeleteOne(ctx, bson.M{"_id": idp})
-	if err != nil {
-		return NewError(400, err)
-	}
-
-	//throw error if no documents found
-	if res.DeletedCount == 0 {
-		return NewErrorString(404, "mongo: no documents in result")
-	}
-
-	return afterDeleteHooks(res, model)
+	return c.DeleteOne(bson.M{"_id": idp}, model)
 }
 
+//delete by query, populate model with result
 func (c *Collection) DeleteOne(filter any, model Model) *Error {
 	if err := beforeDeleteHooks(model); err != nil {
 		return err
 	}
 
 	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
-	res, err := c.coll.DeleteOne(ctx, filter)
-	if err != nil {
-		return NewError(400, err)
-	}
-
-	//throw error if no documents found
-	if res.DeletedCount == 0 {
+	singleResult := c.coll.FindOneAndDelete(ctx, filter)
+	if singleResult.Err() != nil {
+		//throw error if no documents found
 		return NewErrorString(404, "mongo: no documents in result")
 	}
 
-	return afterDeleteHooks(res, model)
+	//populate deleted document
+	derr := singleResult.Decode(model)
+	if derr != nil {
+		return NewError(500, derr)
+	}
+
+	//If we got here, the deleted count is one
+	res := mongo.DeleteResult{
+		DeletedCount: 1,
+	}
+
+	return afterDeleteHooks(&res, model)
 }
 
 func (c *Collection) DeleteMany(filter any) *Error {

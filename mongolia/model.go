@@ -36,6 +36,7 @@ type Model interface {
 	PreCreate() error
 	PostCreate() error
 	PreUpdate(update any) error
+	PostUpdate(update any, result *mongo.UpdateResult) error
 	PreUpdateModel() error
 	PostUpdateModel(result *mongo.UpdateResult) error
 	PostRead() error
@@ -82,7 +83,7 @@ func (m *DefaultModel) PostCreate() error {
 	return nil
 }
 
-// Hook when doing a partial update
+// Hook before a partial update
 func (m *DefaultModel) PreUpdate(update any) error {
 	switch update.(type) {
 	case bson.D:
@@ -91,6 +92,11 @@ func (m *DefaultModel) PreUpdate(update any) error {
 	default:
 		return nil
 	}
+}
+
+// Hook after a partial update, model may be empty
+func (m *DefaultModel) PostUpdate(update any, result *mongo.UpdateResult) error {
+	return nil
 }
 
 // Hooks when pre updating entire model
