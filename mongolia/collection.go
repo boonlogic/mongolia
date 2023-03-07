@@ -98,6 +98,13 @@ func (c *Collection) FindOne(filter any, model Model, opts *options.FindOneOptio
 }
 
 func (c *Collection) FindOneAndUpdate(filter any, update any, model Model, opts *options.FindOneAndUpdateOptions) *Error {
+	//Handle map based updates
+	switch update.(type) {
+	case map[string]any:
+		bson_update := CastMapToDB(update.(map[string]any))
+		return c.FindOneAndUpdate(filter, bson_update, model, opts)
+	}
+
 	if err := model.ValidateUpdate(update); err != nil {
 		return NewError(406, err)
 	}
@@ -376,7 +383,6 @@ func (c *Collection) Drop() *Error {
 }
 
 // Run a mongo.Pipeline on a specific colleciton
-// Validate read is not called here
 func (c *Collection) Aggregate(results interface{}, pipeline any) *Error {
 
 	//Verify Type
@@ -417,4 +423,70 @@ func (c *Collection) Aggregate(results interface{}, pipeline any) *Error {
 	}
 
 	return nil
+}
+
+// Run a mongo.Pipeline on a specific colleciton with find results
+func (c *Collection) AggregateWithResults(results interface{}, pipeline any, skip *int64, limit *int64) (*FindResult, *Error) {
+
+	//Verify Type
+	resultsValue := reflect.ValueOf(results)
+	if resultsValue.Kind() != reflect.Ptr {
+		return nil, NewErrorString(400, fmt.Sprintf("Expecting results to be a pointer to slice, instead got %v", resultsValue.Kind()))
+	}
+	if resultsValue.Elem().Kind() != reflect.Slice {
+		return nil, NewErrorString(400, fmt.Sprintf("Expecting results to be a pointer to slice, instead got %v", resultsValue.Kind()))
+	}
+
+	ctx, _ := context.WithTimeout(context.Background(), c.timeout)
+	cursor, err := c.coll.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, NewError(404, err)
+	}
+
+	//Parse all results
+	err = cursor.All(ctx, results)
+	if err != nil {
+		return nil, NewError(404, err)
+	}
+
+	//Get Underlying struct
+	pointerSliceModel := resultsValue.Elem()
+	sliceLength := pointerSliceModel.Len()
+
+	//Attempt to cast each element of the slice back to model so we can call the validate function
+	for i := 0; i < sliceLength; i++ {
+		modelVar, ok := pointerSliceModel.Index(i).Interface().(Model)
+		if ok {
+			//If this pointer can be cast to model, we can call hooks
+			if err := modelVar.ValidateRead(); err != nil {
+				return nil, NewError(406, err)
+			}
+			if merr := afterReadHooks(modelVar); merr != nil {
+				return nil, merr
+			}
+		}
+	}
+
+	//Get document counts
+	var findResult FindResult
+	findResult.Filtered = int64(sliceLength)
+
+	countopts := options.Count().SetMaxTime(2 * time.Second)
+	fullcount, err := c.coll.CountDocuments(ctx, bson.D{}, countopts)
+	if err != nil {
+		return nil, NewError(404, err)
+	}
+	findResult.Collection = fullcount
+
+	findResult.Skip = 0
+	if skip != nil {
+		findResult.Skip = *skip
+	}
+
+	findResult.Limit = fullcount
+	if limit != nil {
+		findResult.Limit = *limit
+	}
+
+	return &findResult, nil
 }

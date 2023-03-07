@@ -5,6 +5,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"reflect"
 	"time"
+	"strings"
 )
 
 func ValidateFindResults[T Model](findResults []T) error {
@@ -16,8 +17,73 @@ func ValidateFindResults[T Model](findResults []T) error {
 	return nil
 }
 
-// Returns a map of request tags for each field in struct
-// e.g. GetStructTags(UserModel, 'ref') will return all the 'ref' values in a structs tags
+
+func camelCaseString(input string) string {
+	if len(input) < 1 {
+		return input
+	}
+	output := strings.ToLower(string(input[0])) + input[1:len(input)]
+	return output
+}
+
+func splitCommaTag(input string) string {
+	// Split tag on commas, assume name is first
+	all_tags := strings.Split(input, ",")
+	name := all_tags[0]
+	return name
+}
+
+func GetFieldName(field reflect.StructField) string {
+	//Priority 1: bson tag
+	bson_tag := field.Tag.Get("bson")
+	if bson_tag != "" {
+		return splitCommaTag(bson_tag)
+	}
+
+	//Priority 2: json tag
+	json_tag := field.Tag.Get("json")
+	if json_tag != "" {
+		return splitCommaTag(json_tag)
+	}
+
+	//Priority 2: camelCase
+	return camelCaseString(field.Name)
+}
+
+func RecurseTagReference(t reflect.Type, tagName string, rootName string, result map[string]string) {
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	if t.Kind() != reflect.Struct {
+		return
+	}
+
+	// Iterate over all available fields and read the tag value
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+
+		ft := field.Type
+		if ft.Kind() == reflect.Ptr {
+			ft = ft.Elem()
+		}
+
+		if ft.Kind() == reflect.Struct {
+			recurseName := rootName + GetFieldName(field) + "."
+			RecurseTagReference(ft, tagName, recurseName, result)
+		}
+		if ft.Kind() == reflect.Slice && ft.Elem().Kind() == reflect.Struct {
+			recurseName := rootName + GetFieldName(field) + "."
+			RecurseTagReference(ft.Elem(), tagName, recurseName, result)
+		}
+
+		reference := field.Tag.Get(tagName)
+		if reference != "" {
+			refName := rootName + GetFieldName(field)
+			result[refName] = reference
+		}
+	}
+}
+
 func GetStructTags(model interface{}, tagName string) map[string]string {
 	result := make(map[string]string)
 
@@ -28,16 +94,8 @@ func GetStructTags(model interface{}, tagName string) map[string]string {
 		return result
 	}
 
-	// Iterate over all available fields and read the tag value
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-
-		reference := field.Tag.Get(tagName)
-		if reference != "" {
-			result[field.Name] = reference
-		}
-		//Also available: Data Type = field.Type.Name()
-	}
+	// Recursively find tag values and append
+	RecurseTagReference(t, tagName, "", result)
 
 	return result
 }

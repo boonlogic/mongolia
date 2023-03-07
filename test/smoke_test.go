@@ -149,6 +149,34 @@ func Test(t *testing.T) {
 	require.NotNil(t, find_results)
 	require.Equal(t, find_results.Filtered, int64(2))
 
+	//Test AggregateWithResults operation
+	mquery := make(map[string]string)
+	matchStage := bson.D{{"$match", mquery}}
+	pipeline := mongo.Pipeline{matchStage}
+
+	projectStage := bson.D{{"$project", bson.D{{"userId", 0}}}}
+	pipeline = append(pipeline, projectStage)
+
+	sortStage := bson.D{{"$sort", bson.D{{"username", 1}}}}
+	pipeline = append(pipeline, sortStage)
+
+	skip := int64(0)
+	skipStage := bson.D{{"$skip", skip}}
+	pipeline = append(pipeline, skipStage)
+
+	limit := int64(1)
+	limitStage := bson.D{{"$limit", limit}}
+	pipeline = append(pipeline, limitStage)
+
+	aggregates := []*User{}
+	aggregate_results, err := coll.AggregateWithResults(&aggregates, pipeline, &skip, &limit)
+	require.Nil(t, err)
+	require.NotNil(t, aggregate_results)
+	require.Equal(t, len(aggregates), int(limit)) //test limit
+	require.Equal(t, aggregate_results.Filtered, limit)
+	require.Nil(t, aggregates[0].UserID)              //Test project
+	require.Equal(t, *aggregates[0].Username, "brad") //Test sort
+
 	//Test Distinct Operation
 	unique_usernames, err := coll.Distinct(bson.D{}, "username")
 	require.Nil(t, err)
@@ -188,6 +216,19 @@ func Test(t *testing.T) {
 		fmt.Printf("Expected Validate Error: %s\n", err.ToString())
 	}
 
+	//Find one and update
+	fou_username := "changed_again"
+	mapfilter := make(map[string]any)
+	mapfilter["username"] = partialusername
+	mapupdate := make(map[string]any)
+	mapupdate["username"] = fou_username
+	fou_model := User{}
+	fou_opts := options.FindOneAndUpdate().SetUpsert(false)
+	fou_opts.SetReturnDocument(options.After)
+	err = coll.FindOneAndUpdate(mapfilter, mapupdate, &fou_model, fou_opts)
+	require.Nil(t, err)
+	require.Equal(t, *fou_model.Username, fou_username)
+
 	// delete user
 	// this deletes the DB document corresponding to user
 	err = coll.Delete(user)
@@ -213,4 +254,10 @@ func Test(t *testing.T) {
 	//delete many
 	err = coll.DeleteMany(bson.M{})
 	require.Nil(t, err)
+
+	//test struct tags
+	tagUser := User{}
+	refNames := mongolia.GetStructTags(tagUser, "ref")
+	require.NotNil(t, refNames)
+	require.Equal(t, refNames["perms"], "permission")
 }
