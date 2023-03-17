@@ -138,6 +138,8 @@ func PopulateIndexes(ctx context.Context, coll *mongo.Collection, indexes interf
 	switch v := indexes.(type) {
 	case []mongo.IndexModel:
 		indexModel = indexes.([]mongo.IndexModel)
+	case mongo.IndexModel:
+		indexModel = []mongo.IndexModel{indexes.(mongo.IndexModel)}
 	default:
 		return errors.New(fmt.Sprintf("Unknown index type %v", v))
 	}
