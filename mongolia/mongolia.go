@@ -85,7 +85,6 @@ func (odm *ODM) CreateCollection(name string, indexes interface{}) *Collection {
 			log.Printf("Error Creating Indexes: %v\n", err.ToString())
 		}
 	}
-	log.Printf("added collection '%s'", name)
 	return c
 }
 
@@ -94,13 +93,10 @@ func (odm *ODM) CreateTimeSeriesCollection(name string, opts *options.TimeSeries
 	col_opts := options.CreateCollection().SetTimeSeriesOptions(opts)
 	ctx, _ := context.WithTimeout(context.Background(), odm.timeout)
 	err := odm.database.CreateCollection(ctx, name, col_opts)
-	exists := false
 	if err != nil {
 		switch e := err.(type) {
 		case mongo.CommandError: // raises a specific CommandError if collection already exists
-			if e.Name == "NamespaceExists" {
-				exists = true
-			} else {
+			if e.Name != "NamespaceExists" {
 				log.Printf("Error Creating TimeSeries %v\n", err.Error())
 				return nil
 			}
@@ -121,9 +117,6 @@ func (odm *ODM) CreateTimeSeriesCollection(name string, opts *options.TimeSeries
 		if err != nil {
 			log.Printf("Error Creating Indexes: %v\n", err.ToString())
 		}
-	}
-	if !exists {
-		log.Printf("added collection '%s'", name)
 	}
 	return c
 }

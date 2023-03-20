@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"reflect"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -81,7 +80,6 @@ func validateIndexes(current []bson.D, requested []mongo.IndexModel) error {
 			requested_unique = *requested_options.Unique
 		}
 
-		match := false
 		for _, current_index := range current {
 			current_map := current_index.Map()
 
@@ -120,13 +118,9 @@ func validateIndexes(current []bson.D, requested []mongo.IndexModel) error {
 				}
 
 				//Match was found, break now
-				match = true
 				break
 			}
 
-		}
-		if !match {
-			log.Printf("Created new index %v \n", requested_name)
 		}
 	}
 	return nil
