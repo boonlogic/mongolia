@@ -8,14 +8,20 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/bsonx"
+	"os"
 	"testing"
 	"time"
 )
 
 func Test(t *testing.T) {
 
+	mongo_uri := "mongodb://localhost:27017"
+	if os.Getenv("CI") == "true" {
+		mongo_uri = "mongodb://mongo:27017/"
+	}
+
 	odm := mongolia.NewODM().
-		SetURI("mongodb://localhost:27017").
+		SetURI(mongo_uri).
 		SetDBName("mongolia-local-tmp").
 		SetTimeout(10 * time.Second)
 
