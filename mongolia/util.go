@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"go.mongodb.org/mongo-driver/bson"
 	"reflect"
-	"time"
 	"strings"
+	"time"
 )
 
 func ValidateFindResults[T Model](findResults []T) error {
@@ -16,7 +16,6 @@ func ValidateFindResults[T Model](findResults []T) error {
 	}
 	return nil
 }
-
 
 func camelCaseString(input string) string {
 	if len(input) < 1 {

@@ -205,8 +205,8 @@ func (c *Collection) FindWithResults(filter any, results interface{}, opts *opti
 	var findResult FindResult
 	findResult.Filtered = int64(sliceLength)
 
-	countopts := options.Count().SetMaxTime(2 * time.Second)
-	collection, err := c.coll.CountDocuments(ctx, bson.D{}, countopts)
+	//get estimated document count for this use case
+	collection, err := c.coll.EstimatedDocumentCount(ctx)
 	if err != nil {
 		return nil, NewError(404, err)
 	}
@@ -338,7 +338,7 @@ func (c *Collection) DeleteByID(id any, model Model) *Error {
 	return c.DeleteOne(bson.M{"_id": idp}, model)
 }
 
-//delete by query, populate model with result
+// delete by query, populate model with result
 func (c *Collection) DeleteOne(filter any, model Model) *Error {
 	if err := beforeDeleteHooks(model); err != nil {
 		return err
