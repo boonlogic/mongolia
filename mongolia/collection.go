@@ -471,7 +471,7 @@ func (c *Collection) AggregateWithResults(results interface{}, pipeline any, ski
 	var findResult FindResult
 	findResult.Filtered = int64(sliceLength)
 
-	countopts := options.Count().SetMaxTime(2 * time.Second)
+	countopts := options.Count().SetMaxTime(2 * time.Second).SetHint("_id_")
 	fullcount, err := c.coll.CountDocuments(ctx, bson.D{}, countopts)
 	if err != nil {
 		return nil, NewError(404, err)
