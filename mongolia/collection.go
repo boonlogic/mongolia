@@ -205,8 +205,8 @@ func (c *Collection) FindWithResults(filter any, results interface{}, opts *opti
 	var findResult FindResult
 	findResult.Filtered = int64(sliceLength)
 
-	//get estimated document count for this use case
-	collection, err := c.coll.EstimatedDocumentCount(ctx)
+	countopts := options.Count().SetMaxTime(2 * time.Second).SetHint("_id_")
+	collection, err := c.coll.CountDocuments(ctx, bson.D{}, countopts)
 	if err != nil {
 		return nil, NewError(404, err)
 	}
