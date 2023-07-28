@@ -7,7 +7,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/x/bsonx"
 	"os"
 	"testing"
 	"time"
@@ -40,9 +39,9 @@ func Test(t *testing.T) {
 	//Create Indexes
 	indexes := []mongo.IndexModel{
 		{
-			Keys: bsonx.Doc{
-				{Key: "userId", Value: bsonx.String("text")},
-				{Key: "username", Value: bsonx.String("text")},
+			Keys: bson.D{
+				{"userId", 1},
+				{"username", 1},
 			},
 			Options: options.Index().SetName("id_name").SetUnique(false),
 		},
@@ -89,8 +88,6 @@ func Test(t *testing.T) {
 	err = coll.FindOne(q, found, nil)
 	require.Nil(t, err)
 	require.Equal(t, found.GetID(), user.GetID())
-
-	fmt.Printf("FindOne: %v \n", *found)
 
 	// fail to find a user with FindOne
 	found = new(User)

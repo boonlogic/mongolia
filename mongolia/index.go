@@ -8,7 +8,6 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/x/bsonx"
 )
 
 func insertIndexes(ctx context.Context, coll *mongo.Collection, indexes []mongo.IndexModel) error {
@@ -38,18 +37,44 @@ func dropIndex(coll *mongo.Collection, name string) error {
 	return nil
 }
 
-func matchSingleIndex(current bson.D, requested bsonx.Doc) error {
+func Int32OK(value interface{}) (int32, bool) {
+	switch v := value.(type) {
+	case int:
+		return int32(v), true
+	case int32:
+		return v, true
+	case int64:
+		return int32(v), true
+	case uint:
+		return int32(v), true
+	case uint32:
+		return int32(v), true
+	case uint64:
+		return int32(v), true
+	case float32:
+		return int32(v), true
+	case float64:
+		return int32(v), true
+	default:
+		// nah
+		return int32(0), false
+	}
+}
+
+func matchSingleIndex(current bson.D, requested bson.D) error {
 	for _, requested_index := range requested {
-		if requested_index.Value.String() == "text" {
-			//mongo doesn't store text index fields, so we can't compare
-			continue
+		if strvalue, ok := requested_index.Value.(string); ok {
+			if strvalue == "text" {
+				//mongo doesn't store text index fields, so we can't compare
+				continue
+			}
 		}
 
 		for _, current_index := range current {
 			if current_index.Key == requested_index.Key {
-				request_val, int_requested := requested_index.Value.Int32OK() //check if requested can be converted to int32 first
-				if reflect.TypeOf(current_index.Value).Kind() == reflect.Int32 && int_requested {
-					// 1 or -1 are int32 and the requested bsonx needs to be converted to compare with current
+				request_val, int32_ok := Int32OK(requested_index.Value) //check if requested can be converted to int32 first
+				if reflect.TypeOf(current_index.Value).Kind() == reflect.Int32 && int32_ok {
+					// 1 or -1 are int32 and the requested bson needs to be converted to compare with current
 					if current_index.Value != request_val {
 						return errors.New(fmt.Sprintf("Requested Index Field %v has a value (%v) that does not match existing value (%v)", requested_index.Key, request_val, current_index.Value))
 					}
@@ -66,7 +91,10 @@ func validateIndexes(current []bson.D, requested []mongo.IndexModel) error {
 	//loop through requested ones
 	for _, requested_index := range requested {
 		requested_options := *requested_index.Options
-		requested_keys := requested_index.Keys.(bsonx.Doc)
+		requested_keys, ok := requested_index.Keys.(bson.D)
+		if !ok {
+			return errors.New("Requested Index keys must be bson.D")
+		}
 
 		//Requested Name
 		if requested_options.Name == nil {
@@ -123,6 +151,7 @@ func validateIndexes(current []bson.D, requested []mongo.IndexModel) error {
 
 		}
 	}
+
 	return nil
 }
 
@@ -145,12 +174,12 @@ func PopulateIndexes(ctx context.Context, coll *mongo.Collection, indexes interf
 	}
 
 	//Compare with existing
-	if err := validateIndexes(current, indexModel); err != nil {
+	if err = validateIndexes(current, indexModel); err != nil {
 		return err
 	}
 
 	//Insert indexes
-	if err := insertIndexes(ctx, coll, indexModel); err != nil {
+	if err = insertIndexes(ctx, coll, indexModel); err != nil {
 		return err
 	}
 
